@@ -266,14 +266,12 @@ const progressFill = document.getElementById('progressFill');
 const deathMsg = document.getElementById('deathMsg');
 const hiScoreMsg = document.getElementById('hiScoreMsg');
 
-// ─── Constants ───────────────────────────────────────────────────────────────
 const GROUND_Y = H - 60;
 const GRAVITY = 0.65;
 const JUMP_VEL = -14.5;
 const DOUBLE_JUMP_VEL = -13;
 const BASE_SPEED = 5.5;
 
-// ─── State ───────────────────────────────────────────────────────────────────
 let state = 'menu';
 let score = 0, hiScore = 0, level = 1;
 let speed, frame, distance;
@@ -292,6 +290,7 @@ let progressPct = 0;
 let practiceMode = null;
 let tutorialStep = 0;
 let tutorialActive = false;
+let useInvincibility = false;
 
 const player = {
   x: 110, y: GROUND_Y - 40, w: 36, h: 36,
@@ -302,7 +301,6 @@ const player = {
   glowColor: '#00ffcc'
 };
 
-// ─── Init background layers ───────────────────────────────────────────────────
 function initBg() {
   stars = Array.from({length: 120}, () => ({
     x: Math.random() * W,
@@ -313,7 +311,7 @@ function initBg() {
   }));
 
   bgLayers = [
-    { // far mountains
+    {
       shapes: Array.from({length: 8}, (_, i) => ({
         x: i * 130 + Math.random() * 60,
         w: 80 + Math.random() * 60,
@@ -322,7 +320,7 @@ function initBg() {
       })),
       speed: 0.3, offset: 0
     },
-    { // mid buildings
+    {
       shapes: Array.from({length: 12}, (_, i) => ({
         x: i * 100 + Math.random() * 40,
         w: 30 + Math.random() * 50,
@@ -338,30 +336,21 @@ function initBg() {
   ];
 }
 
-// ─── Spawn obstacles ───────────────────��──────────────────────────────────────
 const OBSTACLE_TEMPLATES = [
-  // spike
   (x) => ({ type: 'spike', x, y: GROUND_Y - 36, w: 28, h: 36, color: '#ff2244', glow: '#ff0022' }),
-  // tall spike
   (x) => ({ type: 'spike', x, y: GROUND_Y - 54, w: 22, h: 54, color: '#ff6600', glow: '#ff4400' }),
-  // double spike
   (x) => [
     { type: 'spike', x, y: GROUND_Y - 36, w: 26, h: 36, color: '#ff2244', glow: '#ff0022' },
     { type: 'spike', x: x + 34, y: GROUND_Y - 36, w: 26, h: 36, color: '#ff2244', glow: '#ff0022' }
   ],
-  // ceiling spike
   (x) => ({ type: 'cspike', x, y: 0, w: 26, h: 36, color: '#ff00ff', glow: '#cc00ff' }),
-  // block
   (x) => ({ type: 'block', x, y: GROUND_Y - 44, w: 44, h: 44, color: '#0044ff', glow: '#0088ff' }),
-  // double block
   (x) => [
     { type: 'block', x, y: GROUND_Y - 44, w: 40, h: 44, color: '#0044ff', glow: '#0088ff' },
     { type: 'block', x, y: GROUND_Y - 88, w: 40, h: 44, color: '#0066ff', glow: '#00aaff' }
   ],
-  // moving block
   (x) => ({ type: 'mblock', x, y: GROUND_Y - 44 - 60, w: 38, h: 38, color: '#ff8800', glow: '#ffaa00',
              vy: 1.5, minY: GROUND_Y - 38 - 100, maxY: GROUND_Y - 38 }),
-  // portal (gap maior = mais fácil)
   (x) => [
     { type: 'laser', x, y: 0, w: 16, h: GROUND_Y - 110, color: '#ff00ff', glow: '#ff00ff' },
     { type: 'laser', x, y: GROUND_Y - 50, w: 16, h: 50, color: '#ff00ff', glow: '#ff00ff' }
@@ -370,8 +359,7 @@ const OBSTACLE_TEMPLATES = [
 
 function spawnObstacle() {
   const xBase = W + 80;
-  const availableTypes = Math.min(OBSTACLE_TEMPLATES.length, 4 + Math.floor(level * 0.5));
-  const tpl = OBSTACLE_TEMPLATES[Math.floor(Math.random() * availableTypes)];
+  const tpl = OBSTACLE_TEMPLATES[Math.floor(Math.random() * Math.min(OBSTACLE_TEMPLATES.length, 4 + Math.floor(level * 0.5)))];
   const result = tpl(xBase);
   if (Array.isArray(result)) obstacles.push(...result);
   else obstacles.push(result);
@@ -390,13 +378,12 @@ function spawnCollectible() {
   });
 }
 
-// ─── Reset / Start ────────────────────────────────────────────────────────────
 function startGame() {
   score = 0; level = 1; frame = 0; distance = 0;
   speed = BASE_SPEED;
   obstacles = []; collectibles = []; particles = []; trailParticles = [];
   shakeX = 0; shakeY = 0; flashAlpha = 0;
-  invincible = false; invTimer = 0;
+  invincible = false; invTimer = 0; useInvincibility = false;
   gravityFlipped = false;
   progressPct = 0;
   tutorialStep = 0;
@@ -422,12 +409,22 @@ function showPracticeMenu() {
 function startPractice(mode) {
   practiceMode = mode;
   tutorialActive = mode === 'tutorial';
-  tutorialStep = 0;
   startGame();
 }
 
 function die() {
   if (!player.alive) return;
+
+  if (useInvincibility && !invincible) {
+    invincible = true;
+    invTimer = 300;
+    player.color = '#ffee00';
+    player.glowColor = '#ffee00';
+    useInvincibility = false;
+    shakeX = 4; shakeY = 4;
+    return;
+  }
+
   player.alive = false;
   state = 'dead';
 
@@ -448,7 +445,6 @@ function die() {
   overlay.classList.remove('hidden');
 }
 
-// ─── Particles ────────────────────────────────────────────────────────────────
 function spawnDeathParticles() {
   for (let i = 0; i < 60; i++) {
     const angle = (Math.PI * 2 / 60) * i + Math.random() * 0.3;
@@ -493,15 +489,13 @@ function spawnCollectParticles(x, y, color) {
   }
 }
 
-// ─── Input ────────────────────────────────────────────────────────────────────
 function doJump() {
-  if (state === 'menu' || state === 'practice_menu') return;
+  if (state === 'menu') showPracticeMenu();
+  if (state === 'practice_menu') return;
   if (state === 'dead') { startGame(); return; }
   if (state !== 'playing' || !player.alive) return;
 
-  const onGround = gravityFlipped
-    ? player.y <= 0
-    : player.y >= GROUND_Y - player.h - 1;
+  const onGround = gravityFlipped ? player.y <= 0 : player.y >= GROUND_Y - player.h - 1;
 
   if (jumpCount === 0 || (jumpCount === 1 && !onGround)) {
     if (jumpCount < 2) {
@@ -519,56 +513,16 @@ document.addEventListener('keydown', e => {
 canvas.addEventListener('click', doJump);
 canvas.addEventListener('touchstart', e => { e.preventDefault(); doJump(); }, { passive: false });
 
-startBtn.addEventListener('click', () => {
-  if (state === 'menu') showPracticeMenu();
-});
-
+startBtn.addEventListener('click', doJump);
 document.getElementById('practiceTutorial').addEventListener('click', () => startPractice('tutorial'));
 document.getElementById('practiceClassic').addEventListener('click', () => startPractice('classic'));
 document.getElementById('practiceBack').addEventListener('click', () => {
   practiceOverlay.classList.add('hidden');
   overlay.classList.remove('hidden');
+  deathMsg.classList.remove('show');
+  startBtn.textContent = 'INICIAR';
   state = 'menu';
 });
-
-// ─── Collision (PIXEL PERFECT) ────────────────────────────────────────────────
-function checkCollisions() {
-  const px = player.x, py = player.y, pw = player.w, ph = player.h;
-
-  for (const obs of obstacles) {
-    if (obs.type === 'spike' || obs.type === 'cspike') {
-      if (rectsOverlap(px, py, pw, ph, obs.x, obs.y, obs.w, obs.h)) { 
-        die(); 
-        return; 
-      }
-    } else if (obs.type === 'block' || obs.type === 'mblock' || obs.type === 'laser') {
-      if (rectsOverlap(px, py, pw, ph, obs.x, obs.y, obs.w, obs.h)) { 
-        die(); 
-        return; 
-      }
-    }
-  }
-
-  for (const c of collectibles) {
-    if (c.collected) continue;
-    const cx = c.x, cy = c.y, cr = c.r;
-    if (circleRectsOverlap(cx, cy, cr, px, py, pw, ph)) {
-      c.collected = true;
-      if (c.type === 'gem') { score += 50; spawnCollectParticles(cx, cy, '#ffee00'); }
-      else if (c.type === 'shield') {
-        invincible = true; invTimer = 300;
-        player.color = '#ffee00'; player.glowColor = '#ffee00';
-        spawnCollectParticles(cx, cy, '#ffee00');
-      }
-      else if (c.type === 'flip') {
-        gravityFlipped = !gravityFlipped;
-        player.y = gravityFlipped ? 0 : GROUND_Y - player.h;
-        player.vy = 0; jumpCount = 0;
-        spawnCollectParticles(cx, cy, '#ff00ff');
-      }
-    }
-  }
-}
 
 function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
   return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
@@ -581,7 +535,37 @@ function circleRectsOverlap(cx, cy, cr, rx, ry, rw, rh) {
   return dx * dx + dy * dy < cr * cr;
 }
 
-// ─── Draw helpers ─────────────────────────────────────────────────────────────
+function checkCollisions() {
+  const px = player.x, py = player.y, pw = player.w, ph = player.h;
+
+  for (const obs of obstacles) {
+    if (obs.type === 'spike' || obs.type === 'cspike' || obs.type === 'block' || obs.type === 'mblock' || obs.type === 'laser') {
+      if (rectsOverlap(px, py, pw, ph, obs.x, obs.y, obs.w, obs.h)) { 
+        die(); 
+        return; 
+      }
+    }
+  }
+
+  for (const c of collectibles) {
+    if (c.collected) continue;
+    if (circleRectsOverlap(c.x, c.y, c.r, px, py, pw, ph)) {
+      c.collected = true;
+      if (c.type === 'gem') { score += 50; spawnCollectParticles(c.x, c.y, '#ffee00'); }
+      else if (c.type === 'shield') {
+        useInvincibility = true;
+        spawnCollectParticles(c.x, c.y, '#ffee00');
+      }
+      else if (c.type === 'flip') {
+        gravityFlipped = !gravityFlipped;
+        player.y = gravityFlipped ? 0 : GROUND_Y - player.h;
+        player.vy = 0; jumpCount = 0;
+        spawnCollectParticles(c.x, c.y, '#ff00ff');
+      }
+    }
+  }
+}
+
 function glow(color, blur = 15) {
   ctx.shadowColor = color;
   ctx.shadowBlur = blur;
@@ -636,7 +620,7 @@ function drawBlock(obs) {
 }
 
 function drawLaser(obs) {
-  const { x, y, w, h, color, glow: gc } = obs;
+  const { x, y, w, h, glow: gc } = obs;
   ctx.save();
   const alpha = 0.7 + 0.3 * Math.sin(frame * 0.3);
   glow(gc, 25);
@@ -899,7 +883,6 @@ function drawTutorial() {
   }
 }
 
-// ─── Update ───────────────────────────────────────────────────────────────────
 function update() {
   frame++;
   const gDir = gravityFlipped ? -1 : 1;
@@ -992,7 +975,6 @@ function update() {
   checkCollisions();
 }
 
-// ─── Main Loop ────────────────────────────────────────────────────────────────
 function draw() {
   ctx.save();
   ctx.translate(
@@ -1043,6 +1025,7 @@ function loop() {
 
 hiDisplay.textContent = hiScore;
 deathMsg.classList.remove('show');
+startBtn.textContent = 'INICIAR';
 initBg();
 loop();
 </script>
