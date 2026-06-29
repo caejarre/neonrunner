@@ -489,9 +489,16 @@ function spawnCollectParticles(x, y, color) {
   }
 }
 
+function handleStartBtn() {
+  if (state === 'menu') {
+    showPracticeMenu();
+  } else if (state === 'dead') {
+    startGame();
+  }
+}
+
 function doJump() {
-  if (state === 'menu') showPracticeMenu();
-  if (state === 'practice_menu') return;
+  if (state === 'menu' || state === 'practice_menu') return;
   if (state === 'dead') { startGame(); return; }
   if (state !== 'playing' || !player.alive) return;
 
@@ -513,7 +520,7 @@ document.addEventListener('keydown', e => {
 canvas.addEventListener('click', doJump);
 canvas.addEventListener('touchstart', e => { e.preventDefault(); doJump(); }, { passive: false });
 
-startBtn.addEventListener('click', doJump);
+startBtn.addEventListener('click', handleStartBtn);
 document.getElementById('practiceTutorial').addEventListener('click', () => startPractice('tutorial'));
 document.getElementById('practiceClassic').addEventListener('click', () => startPractice('classic'));
 document.getElementById('practiceBack').addEventListener('click', () => {
