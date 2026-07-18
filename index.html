@@ -1,1040 +1,384 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEON RUNNER</title>
+<title>Clicker Ultra 500+</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #050510;
+    background: #0a0a0f;
+    color: #eee;
+    font-family: 'Segoe UI', sans-serif;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     height: 100vh;
     overflow: hidden;
-    font-family: 'Orbitron', monospace;
     user-select: none;
   }
+  #left { width: 20%; background: #121220; border-right: 2px solid #222; padding: 15px; overflow-y: auto; }
+  #center { width: 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  #right { width: 20%; background: #121220; border-left: 2px solid #222; padding: 15px; overflow-y: auto; }
+  #farRight { width: 20%; background: #0f0f1a; padding: 15px; overflow-y: auto; border-left: 2px solid #222; }
 
-  #gameWrapper {
+  #score { font-size: 3rem; font-weight: bold; color: #ffd700; text-shadow: 0 0 15px #ffd700; }
+  #pps { font-size: 1.1rem; color: #aaa; margin-bottom: 15px; }
+
+  #botao {
+    width: 270px; height: 270px; border-radius: 50%;
+    background: radial-gradient(circle, #ff4d6d, #c9184a);
+    border: 6px solid #ff758f;
+    font-size: 2.2rem; font-weight: bold; color: white;
+    cursor: pointer; transition: all 0.08s;
+    box-shadow: 0 0 40px rgba(255,77,109,0.6);
     position: relative;
-    width: 900px;
-    max-width: 100vw;
   }
+  #botao:active { transform: scale(0.85); }
 
-  #hud {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 16px;
-    background: rgba(0,0,20,0.8);
-    border: 1px solid rgba(0,255,200,0.2);
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
+ .upgrade,.mission,.achievement,.skin,.event {
+    background: #1e1e35;
+    padding: 10px; margin: 6px 0; border-radius: 8px;
+    cursor: pointer; border: 1px solid #333;
+    transition: 0.2s;
   }
+ .upgrade:hover,.mission:hover,.skin:hover { background: #282850; transform: translateX(4px); }
+ .upgrade.locked,.skin.locked { opacity: 0.4; cursor: not-allowed; }
+ .cost { color: #4cc9f0; font-weight: bold; }
+ .owned { color: #90e0ef; font-size: 0.8rem; float: right; }
+ .done { opacity: 0.4; }
 
-  #hud .stat {
-    font-size: 11px;
-    color: rgba(0,255,200,0.6);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  #hud .val {
-    font-size: 18px;
-    color: #00ffcc;
-    font-weight: 900;
-    text-shadow: 0 0 10px #00ffcc;
-  }
-
-  #canvas {
-    display: block;
-    border: 1px solid rgba(0,255,200,0.3);
-    box-shadow: 0 0 40px rgba(0,255,200,0.15), inset 0 0 60px rgba(0,0,40,0.8);
-  }
-
-  #overlay {
-    position: absolute;
-    top: 42px;
-    left: 0;
-    width: 100%;
-    height: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    background: rgba(0,0,15,0.92);
-    backdrop-filter: blur(6px);
-    z-index: 10;
-    transition: opacity 0.3s;
-  }
-
-  #overlay.hidden { opacity: 0; pointer-events: none; }
-
-  #overlay h1 {
-    font-size: 52px;
-    font-weight: 900;
-    color: transparent;
-    background: linear-gradient(90deg, #00ffcc, #ff00ff, #00aaff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    text-shadow: none;
-    letter-spacing: 6px;
-    animation: titlePulse 2s ease-in-out infinite;
-  }
-
-  @keyframes titlePulse {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.4); }
-  }
-
-  #overlay .subtitle {
-    font-family: 'Share Tech Mono', monospace;
-    color: rgba(0,255,200,0.5);
-    font-size: 13px;
-    letter-spacing: 4px;
-  }
-
-  #overlay .hiScore {
-    font-size: 13px;
-    color: #ff00ff;
-    letter-spacing: 3px;
-    text-shadow: 0 0 8px #ff00ff;
-  }
-
-  #overlay .deathMsg {
-    font-size: 22px;
-    color: #ff4444;
-    font-weight: 700;
-    text-shadow: 0 0 15px #ff4444;
-    display: none;
-  }
-
-  #overlay .deathMsg.show { display: block; }
-
-  #startBtn {
-    padding: 14px 48px;
-    background: transparent;
-    border: 2px solid #00ffcc;
-    color: #00ffcc;
-    font-family: 'Orbitron', monospace;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 4px;
+  #prestigeBtn, #settingsBtn {
+    margin-top: 10px; padding: 10px; width: 100%;
+    background: linear-gradient(90deg, #7209b7, #560bad);
+    border: none; border-radius: 8px; color: white; font-weight: bold;
     cursor: pointer;
-    border-radius: 4px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    box-shadow: 0 0 20px rgba(0,255,200,0.3);
-    position: relative;
-    overflow: hidden;
   }
+  #prestigeBtn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  #startBtn:hover {
-    background: rgba(0,255,200,0.1);
-    box-shadow: 0 0 40px rgba(0,255,200,0.5);
-    transform: scale(1.04);
-  }
+ .float { position: absolute; color: #ffd700; font-weight: bold; animation: floatUp 1s forwards; pointer-events: none; font-size: 1.3rem; }
+  @keyframes floatUp { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-130px) scale(1.6); } }
 
-  #startBtn:active { transform: scale(0.97); }
+  #boss { position: absolute; top: 10%; width: 120px; height: 120px; background: radial-gradient(#ff0000,#800000); border-radius: 20px; display: none; cursor: pointer; animation: bossFloat 2s infinite; }
+  @keyframes bossFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)} }
+  #bossHp { position: absolute; top: -20px; width: 100%; height: 8px; background: #333; border-radius: 4px; }
+  #bossHpBar { height: 100%; background: #ff0000; border-radius: 4px; transition: width 0.2s; }
 
-  .keys-hint {
-    font-family: 'Share Tech Mono', monospace;
-    color: rgba(255,255,255,0.25);
-    font-size: 11px;
-    letter-spacing: 2px;
-  }
-
-  #progressBar {
-    height: 3px;
-    background: rgba(0,255,200,0.15);
-    border: none;
-    border-radius: 0;
-    overflow: hidden;
-  }
-
-  #progressFill {
-    height: 100%;
-    background: linear-gradient(90deg, #00ffcc, #ff00ff);
-    width: 0%;
-    transition: width 0.1s;
-    box-shadow: 0 0 8px #00ffcc;
-  }
-
-  #practiceOverlay {
-    position: absolute;
-    top: 42px;
-    left: 0;
-    width: 100%;
-    height: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    background: rgba(0,0,15,0.92);
-    backdrop-filter: blur(6px);
-    z-index: 10;
-    transition: opacity 0.3s;
-  }
-
-  #practiceOverlay.hidden { opacity: 0; pointer-events: none; }
-
-  #practiceOverlay h2 {
-    font-size: 32px;
-    color: #00ffcc;
-    letter-spacing: 3px;
-  }
-
-  .practice-option {
-    padding: 12px 36px;
-    background: transparent;
-    border: 2px solid #ff00ff;
-    color: #ff00ff;
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    cursor: pointer;
-    border-radius: 4px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    box-shadow: 0 0 15px rgba(255,0,255,0.3);
-  }
-
-  .practice-option:hover {
-    background: rgba(255,0,255,0.1);
-    box-shadow: 0 0 30px rgba(255,0,255,0.5);
-    transform: scale(1.03);
-  }
+  h2 { margin-bottom: 8px; color: #f72585; font-size: 1.1rem; border-bottom: 2px solid #f72585; padding-bottom: 4px; }
+  #multiplier, #crit, #eventTimer { margin-top: 8px; color: #90e0ef; }
+ .event { background: linear-gradient(90deg,#ff9f1c,#ffbf69); color: #000; font-weight: bold; }
 </style>
 </head>
 <body>
 
-<div id="gameWrapper">
-  <div id="hud">
-    <div>
-      <div class="stat">Score</div>
-      <div class="val" id="scoreDisplay">0</div>
-    </div>
-    <div style="text-align:center">
-      <div class="stat">Nível</div>
-      <div class="val" id="levelDisplay">1</div>
-    </div>
-    <div style="text-align:right">
-      <div class="stat">Recorde</div>
-      <div class="val" id="hiDisplay">0</div>
-    </div>
-  </div>
-  <div id="progressBar"><div id="progressFill"></div></div>
-  <canvas id="canvas" width="900" height="320"></canvas>
-
-  <div id="overlay">
-    <h1>NEON RUNNER</h1>
-    <div class="subtitle">// INFINITE SPEED PLATFORMER //</div>
-    <div class="deathMsg" id="deathMsg">💀 VOCÊ MORREU</div>
-    <div class="hiScore" id="hiScoreMsg"></div>
-    <button id="startBtn">INICIAR</button>
-    <div class="keys-hint">ESPAÇO · SETA CIMA · CLIQUE · TOQUE</div>
-  </div>
-
-  <div id="practiceOverlay" class="hidden">
-    <h2>MODO APRENDER</h2>
-    <button class="practice-option" id="practiceTutorial">TUTORIAL</button>
-    <button class="practice-option" id="practiceClassic">CLÁSSICO</button>
-    <button class="practice-option" id="practiceBack">VOLTAR</button>
-  </div>
+<div id="left">
+  <h2>Upgrades PPS</h2>
+  <div id="upgradesPPS"></div>
+  <h2>Upgrades Clique</h2>
+  <div id="upgradesClick"></div>
+  <button id="prestigeBtn" onclick="prestige()">PRESTÍGIO <span id="prestigeReward">0</span>✨</button>
+  <button id="settingsBtn" onclick="resetSave()">Resetar Save</button>
 </div>
 
+<div id="center">
+  <div id="score">0</div>
+  <div id="pps">0.0/s</div>
+  <button id="botao" onclick="clickBtn(event)">CLICA</button>
+  <div id="boss" onclick="hitBoss(event)"><div id="bossHp"><div id="bossHpBar"></div></div></div>
+  <div id="multiplier">Multiplicador: x1.00</div>
+  <div id="crit">Crítico: 5.0%</div>
+  <div id="eventTimer"></div>
+</div>
+
+<div id="right">
+  <h2>Missões</h2>
+  <div id="missions"></div>
+  <h2>Conquistas</h2>
+  <div id="achievements"></div>
+</div>
+
+<div id="farRight">
+  <h2>Loja de Skins</h2>
+  <div id="skins"></div>
+  <h2>Ranking</h2>
+  <div id="ranking"></div>
+  <h2>Estatísticas</h2>
+  <div id="stats"></div>
+</div>
+
+<audio id="clickSound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio>
+
 <script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-const overlay = document.getElementById('overlay');
-const practiceOverlay = document.getElementById('practiceOverlay');
-const startBtn = document.getElementById('startBtn');
-const scoreDisplay = document.getElementById('scoreDisplay');
-const hiDisplay = document.getElementById('hiDisplay');
-const levelDisplay = document.getElementById('levelDisplay');
-const progressFill = document.getElementById('progressFill');
-const deathMsg = document.getElementById('deathMsg');
-const hiScoreMsg = document.getElementById('hiScoreMsg');
-
-const GROUND_Y = H - 60;
-const GRAVITY = 0.65;
-const JUMP_VEL = -14.5;
-const DOUBLE_JUMP_VEL = -13;
-const BASE_SPEED = 5.5;
-
-let state = 'menu';
-let score = 0, hiScore = 0, level = 1;
-let speed, frame, distance;
-let jumpCount;
-let particles = [];
-let stars = [];
-let bgLayers = [];
-let obstacles = [];
-let collectibles = [];
-let trailParticles = [];
-let shakeX = 0, shakeY = 0;
-let flashAlpha = 0;
-let invincible = false, invTimer = 0;
-let gravityFlipped = false;
-let progressPct = 0;
-let practiceMode = null;
-let tutorialStep = 0;
-let tutorialActive = false;
-let useInvincibility = false;
-
-const player = {
-  x: 110, y: GROUND_Y - 40, w: 36, h: 36,
-  vy: 0, vx: 0,
-  alive: true,
-  angle: 0,
-  color: '#00ffcc',
-  glowColor: '#00ffcc'
+let game = {
+  pontos: 0, pontosPorClique: 1, pontosPorSegundo: 0, multiplicador: 1, critChance: 0.05,
+  totalClicado: 0, prestigio: 0, tempoJogado: 0, skinEquipada: 'default',
+  upgrades: [
+    { id: 'cursor', nome: 'Cursor', baseCost: 15, cost: 15, owned: 0, pps: 0.1, desc: '+0.1/s' },
+    { id: 'fazenda', nome: 'Fazenda', baseCost: 100, cost: 100, owned: 0, pps: 1, desc: '+1/s' },
+    { id: 'mina', nome: 'Mina', baseCost: 500, cost: 500, owned: 0, pps: 4, desc: '+4/s' },
+    { id: 'fabrica', nome: 'Fábrica', baseCost: 1100, cost: 1100, owned: 0, pps: 8, desc: '+8/s' },
+    { id: 'banco', nome: 'Banco', baseCost: 12000, cost: 12000, owned: 0, pps: 47, desc: '+47/s' },
+    { id: 'laboratorio', nome: 'Laboratório', baseCost: 50000, cost: 50000, owned: 0, pps: 110, desc: '+110/s' },
+    { id: 'portal', nome: 'Portal', baseCost: 130000, cost: 130000, owned: 0, pps: 260, desc: '+260/s' },
+    { id: 'nave', nome: 'Nave Espacial', baseCost: 500000, cost: 500000, owned: 0, pps: 1000, desc: '+1000/s' }
+  ],
+  upgradesClique: [
+    { id: 'dedo', nome: 'Dedo Forte', baseCost: 50, cost: 50, owned: 0, cpp: 1, desc: '+1 por clique' },
+    { id: 'luva', nome: 'Luva de Aço', baseCost: 500, cost: 500, owned: 0, cpp: 5, desc: '+5 por clique' },
+    { id: 'martelo', nome: 'Martelo', baseCost: 3000, cost: 3000, owned: 0, cpp: 20, desc: '+20 por clique' },
+    { id: 'broca', nome: 'Broca', baseCost: 10000, cost: 10000, owned: 0, cpp: 50, desc: '+50 por clique' },
+    { id: 'crit', nome: 'Crítico', baseCost: 2000, cost: 2000, owned: 0, crit: 0.05, desc: '+5% chance crítico x3' },
+    { id: 'ultra', nome: 'Ultra Click', baseCost: 25000, cost: 25000, owned: 0, crit: 0.1, desc: '+10% crítico' }
+  ],
+  missions: [
+    { id: 1, nome: 'Primeiros 100', req: 100, reward: 50, done: false },
+    { id: 2, nome: '1000 cliques', req: 1000, type: 'clicks', reward: 200, done: false },
+    { id: 3, nome: 'Rico', req: 10000, reward: 1000, done: false },
+    { id: 4, nome: 'Imparável', req: 100000, reward: 10000, done: false },
+    { id: 5, nome: 'Deus do Clique', req: 1000000, reward: 100000, done: false }
+  ],
+  achievements: [
+    { id: 1, nome: 'Iniciante', desc: 'Faça 100 cliques', req: 100, type: 'clicks', done: false },
+    { id: 2, nome: 'Colecionador', desc: 'Compre 10 upgrades', req: 10, type: 'upgrades', done: false },
+    { id: 3, nome: 'Ascendido', desc: 'Alcance 1 Prestígio', req: 1, type: 'prest', done: false },
+    { id: 4, nome: 'Matador de Boss', desc: 'Derrote 5 bosses', req: 5, type: 'boss', done: false }
+  ],
+  skins: [
+    { id: 'default', nome: 'Padrão', cost: 0, owned: true, color: 'radial-gradient(circle, #ff4d6d, #c9184a)' },
+    { id: 'gold', nome: 'Dourada', cost: 5000, owned: false, color: 'radial-gradient(circle, #ffd700, #ffb700)' },
+    { id: 'ice', nome: 'Gelo', cost: 20000, owned: false, color: 'radial-gradient(circle, #90e0ef, #00b4d8)' },
+    { id: 'neon', nome: 'Neon', cost: 100000, owned: false, color: 'radial-gradient(circle, #ff00ff, #00ffff)' }
+  ],
+  boss: { active: false, hp: 0, maxHp: 0, kills: 0 },
+  event: { active: false, type: null, timer: 0 }
 };
 
-function initBg() {
-  stars = Array.from({length: 120}, () => ({
-    x: Math.random() * W,
-    y: Math.random() * GROUND_Y * 0.85,
-    r: Math.random() * 1.5 + 0.3,
-    speed: Math.random() * 0.4 + 0.1,
-    alpha: Math.random() * 0.8 + 0.2
-  }));
+function clickBtn(e) {
+  let ganho = game.pontosPorClique * game.multiplicador * (1 + game.prestigio * 0.1);
+  if(game.event.active && game.event.type === '2x') ganho *= 2;
+  let isCrit = Math.random() < game.critChance;
+  if(isCrit) ganho *= 3;
+  game.pontos += ganho; game.totalClicado += 1;
+  showFloat(e.clientX, e.clientY, `+${Math.floor(ganho)}${isCrit? ' CRIT!' : ''}`);
+  playSound(); update();
+}
 
-  bgLayers = [
-    {
-      shapes: Array.from({length: 8}, (_, i) => ({
-        x: i * 130 + Math.random() * 60,
-        w: 80 + Math.random() * 60,
-        h: 60 + Math.random() * 80,
-        color: 'rgba(20,0,60,0.8)'
-      })),
-      speed: 0.3, offset: 0
-    },
-    {
-      shapes: Array.from({length: 12}, (_, i) => ({
-        x: i * 100 + Math.random() * 40,
-        w: 30 + Math.random() * 50,
-        h: 40 + Math.random() * 100,
-        color: 'rgba(0,20,60,0.9)',
-        windows: Array.from({length: 5}, () => ({
-          lit: Math.random() > 0.5,
-          color: Math.random() > 0.5 ? '#00ffcc' : '#ff00ff'
-        }))
-      })),
-      speed: 0.9, offset: 0
+function showFloat(x, y, text) {
+  let el = document.createElement('div'); el.className = 'float';
+  el.style.left = (x - 50) + 'px'; el.style.top = (y - 30) + 'px'; el.innerText = text;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
+}
+
+function playSound() {
+  let audio = document.getElementById('clickSound');
+  audio.currentTime = 0; audio.play().catch(()=>{});
+}
+
+function buyUpgrade(type, index) {
+  let upg = type === 'pps'? game.upgrades[index] : game.upgradesClique[index];
+  if(game.pontos >= upg.cost) {
+    game.pontos -= upg.cost; upg.owned += 1;
+    upg.cost = Math.floor(upg.baseCost * Math.pow(1.15, upg.owned));
+    if(type === 'pps') game.pontosPorSegundo += upg.pps;
+    if(type === 'cpp') game.pontosPorClique += upg.cpp;
+    if(type === 'crit') game.critChance += upg.crit;
+    update();
+  }
+}
+
+function buySkin(index) {
+  let skin = game.skins[index];
+  if(!skin.owned && game.pontos >= skin.cost) {
+    game.pontos -= skin.cost; skin.owned = true;
+  }
+  if(skin.owned) {
+    game.skinEquipada = skin.id;
+    document.getElementById('botao').style.background = skin.color;
+  }
+  update();
+}
+
+function prestige() {
+  if(game.pontos < 100000) return;
+  let reward = Math.floor(Math.sqrt(game.pontos / 100000));
+  if(confirm(`Resetar e ganhar ${reward}✨ de prestígio? +${(reward*10)}% permanente`)){
+    game.prestigio += reward; game.pontos = 0; game.pontosPorClique = 1; game.pontosPorSegundo = 0;
+    game.critChance = 0.05; game.totalClicado = 0;
+    game.upgrades.forEach(u => { u.owned = 0; u.cost = u.baseCost; });
+    game.upgradesClique.forEach(u => { u.owned = 0; u.cost = u.baseCost; });
+    update();
+  }
+}
+
+function spawnBoss() {
+  if(game.boss.active) return;
+  game.boss.active = true;
+  game.boss.maxHp = 1000 * (1 + game.prestigio);
+  game.boss.hp = game.boss.maxHp;
+  document.getElementById('boss').style.display = 'block';
+  updateBossBar();
+  setTimeout(() => { if(game.boss.active) despawnBoss(); }, 15000);
+}
+
+function hitBoss(e) {
+  if(!game.boss.active) return;
+  let dmg = game.pontosPorClique * 10;
+  game.boss.hp -= dmg;
+  showFloat(e.clientX, e.clientY, `-${Math.floor(dmg)}`);
+  updateBossBar();
+  if(game.boss.hp <= 0) {
+    game.boss.kills += 1; game.pontos += game.boss.maxHp * 0.5;
+    alert(`Boss derrotado! +${Math.floor(game.boss.maxHp * 0.5)} pontos`);
+    despawnBoss();
+  }
+}
+
+function despawnBoss() {
+  game.boss.active = false;
+  document.getElementById('boss').style.display = 'none';
+}
+
+function updateBossBar() {
+  let pct = (game.boss.hp / game.boss.maxHp) * 100;
+  document.getElementById('bossHpBar').style.width = pct + '%';
+}
+
+function triggerEvent() {
+  if(game.event.active) return;
+  game.event.active = true;
+  game.event.type = '2x';
+  game.event.timer = 30;
+  let el = document.createElement('div'); el.className = 'event'; el.innerText = 'EVENTO: 2x PONTOS POR 30s!';
+  document.getElementById('eventTimer').appendChild(el);
+}
+
+function updateEvent() {
+  if(game.event.active) {
+    game.event.timer -= 1;
+    document.getElementById('eventTimer').innerText = `Evento: ${game.event.timer}s`;
+    if(game.event.timer <= 0) {
+      game.event.active = false; game.event.type = null;
+      document.getElementById('eventTimer').innerHTML = '';
     }
-  ];
+  }
 }
 
-const OBSTACLE_TEMPLATES = [
-  (x) => ({ type: 'spike', x, y: GROUND_Y - 36, w: 28, h: 36, color: '#ff2244', glow: '#ff0022' }),
-  (x) => ({ type: 'spike', x, y: GROUND_Y - 54, w: 22, h: 54, color: '#ff6600', glow: '#ff4400' }),
-  (x) => [
-    { type: 'spike', x, y: GROUND_Y - 36, w: 26, h: 36, color: '#ff2244', glow: '#ff0022' },
-    { type: 'spike', x: x + 34, y: GROUND_Y - 36, w: 26, h: 36, color: '#ff2244', glow: '#ff0022' }
-  ],
-  (x) => ({ type: 'cspike', x, y: 0, w: 26, h: 36, color: '#ff00ff', glow: '#cc00ff' }),
-  (x) => ({ type: 'block', x, y: GROUND_Y - 44, w: 44, h: 44, color: '#0044ff', glow: '#0088ff' }),
-  (x) => [
-    { type: 'block', x, y: GROUND_Y - 44, w: 40, h: 44, color: '#0044ff', glow: '#0088ff' },
-    { type: 'block', x, y: GROUND_Y - 88, w: 40, h: 44, color: '#0066ff', glow: '#00aaff' }
-  ],
-  (x) => ({ type: 'mblock', x, y: GROUND_Y - 44 - 60, w: 38, h: 38, color: '#ff8800', glow: '#ffaa00',
-             vy: 1.5, minY: GROUND_Y - 38 - 100, maxY: GROUND_Y - 38 }),
-  (x) => [
-    { type: 'laser', x, y: 0, w: 16, h: GROUND_Y - 110, color: '#ff00ff', glow: '#ff00ff' },
-    { type: 'laser', x, y: GROUND_Y - 50, w: 16, h: 50, color: '#ff00ff', glow: '#ff00ff' }
-  ],
-];
-
-function spawnObstacle() {
-  const xBase = W + 80;
-  const tpl = OBSTACLE_TEMPLATES[Math.floor(Math.random() * Math.min(OBSTACLE_TEMPLATES.length, 4 + Math.floor(level * 0.5)))];
-  const result = tpl(xBase);
-  if (Array.isArray(result)) obstacles.push(...result);
-  else obstacles.push(result);
-}
-
-function spawnCollectible() {
-  const types = ['gem', 'shield', 'flip'];
-  const t = types[Math.floor(Math.random() * types.length)];
-  collectibles.push({
-    type: t,
-    x: W + 60,
-    y: GROUND_Y - 100 - Math.random() * 80,
-    r: 12,
-    angle: 0,
-    collected: false
+function checkMissions() {
+  game.missions.forEach(m => {
+    if(!m.done) {
+      let progress = m.type === 'clicks'? game.totalClicado : game.pontos;
+      if(progress >= m.req) { m.done = true; game.pontos += m.reward; alert(`Missão: ${m.nome}! +${m.reward}`); }
+    }
   });
 }
 
-function startGame() {
-  score = 0; level = 1; frame = 0; distance = 0;
-  speed = BASE_SPEED;
-  obstacles = []; collectibles = []; particles = []; trailParticles = [];
-  shakeX = 0; shakeY = 0; flashAlpha = 0;
-  invincible = false; invTimer = 0; useInvincibility = false;
-  gravityFlipped = false;
-  progressPct = 0;
-  tutorialStep = 0;
-
-  player.x = 110; player.y = GROUND_Y - player.h;
-  player.vy = 0; player.vx = 0;
-  player.alive = true; player.angle = 0;
-  player.color = '#00ffcc'; player.glowColor = '#00ffcc';
-  jumpCount = 0;
-
-  initBg();
-  overlay.classList.add('hidden');
-  practiceOverlay.classList.add('hidden');
-  state = 'playing';
-}
-
-function showPracticeMenu() {
-  overlay.classList.add('hidden');
-  practiceOverlay.classList.remove('hidden');
-  state = 'practice_menu';
-}
-
-function startPractice(mode) {
-  practiceMode = mode;
-  tutorialActive = mode === 'tutorial';
-  startGame();
-}
-
-function die() {
-  if (!player.alive) return;
-
-  if (useInvincibility && !invincible) {
-    invincible = true;
-    invTimer = 300;
-    player.color = '#ffee00';
-    player.glowColor = '#ffee00';
-    useInvincibility = false;
-    shakeX = 4; shakeY = 4;
-    return;
-  }
-
-  player.alive = false;
-  state = 'dead';
-
-  spawnDeathParticles();
-  shakeX = 12; shakeY = 12;
-  flashAlpha = 0.7;
-
-  if (score > hiScore) {
-    hiScore = score;
-    hiScoreMsg.textContent = '★ NOVO RECORDE: ' + hiScore + ' ★';
-  } else {
-    hiScoreMsg.textContent = 'Recorde: ' + hiScore;
-  }
-
-  hiDisplay.textContent = hiScore;
-  deathMsg.classList.add('show');
-  startBtn.textContent = 'TENTAR NOVAMENTE';
-  overlay.classList.remove('hidden');
-}
-
-function spawnDeathParticles() {
-  for (let i = 0; i < 60; i++) {
-    const angle = (Math.PI * 2 / 60) * i + Math.random() * 0.3;
-    const spd = 2 + Math.random() * 8;
-    particles.push({
-      x: player.x + player.w / 2,
-      y: player.y + player.h / 2,
-      vx: Math.cos(angle) * spd,
-      vy: Math.sin(angle) * spd,
-      life: 1, decay: 0.02 + Math.random() * 0.03,
-      r: 2 + Math.random() * 5,
-      color: ['#00ffcc', '#ff00ff', '#ff4444', '#ffaa00'][Math.floor(Math.random() * 4)]
-    });
-  }
-}
-
-function spawnJumpParticles() {
-  for (let i = 0; i < 8; i++) {
-    particles.push({
-      x: player.x + player.w / 2 + (Math.random() - 0.5) * 16,
-      y: player.y + player.h,
-      vx: (Math.random() - 0.5) * 4,
-      vy: 1 + Math.random() * 3,
-      life: 1, decay: 0.06 + Math.random() * 0.04,
-      r: 2 + Math.random() * 3,
-      color: player.glowColor
-    });
-  }
-}
-
-function spawnCollectParticles(x, y, color) {
-  for (let i = 0; i < 16; i++) {
-    const a = (Math.PI * 2 / 16) * i;
-    particles.push({
-      x, y,
-      vx: Math.cos(a) * (2 + Math.random() * 4),
-      vy: Math.sin(a) * (2 + Math.random() * 4),
-      life: 1, decay: 0.04,
-      r: 2 + Math.random() * 3,
-      color
-    });
-  }
-}
-
-function handleStartBtn() {
-  if (state === 'menu') {
-    showPracticeMenu();
-  } else if (state === 'dead') {
-    startGame();
-  }
-}
-
-function doJump() {
-  if (state === 'menu' || state === 'practice_menu') return;
-  if (state === 'dead') { startGame(); return; }
-  if (state !== 'playing' || !player.alive) return;
-
-  const onGround = gravityFlipped ? player.y <= 0 : player.y >= GROUND_Y - player.h - 1;
-
-  if (jumpCount === 0 || (jumpCount === 1 && !onGround)) {
-    if (jumpCount < 2) {
-      const vel = jumpCount === 0 ? JUMP_VEL : DOUBLE_JUMP_VEL;
-      player.vy = gravityFlipped ? -vel : vel;
-      jumpCount++;
-      spawnJumpParticles();
+function checkAchievements() {
+  let totalUpgrades = [...game.upgrades,...game.upgradesClique].reduce((a,u)=>a+u.owned,0);
+  game.achievements.forEach(a => {
+    if(!a.done) {
+      let progress = a.type==='clicks'?game.totalClicado:a.type==='upgrades'?totalUpgrades:a.type==='prest'?game.prestigio:a.type==='boss'?game.boss.kills:0;
+      if(progress >= a.req) { a.done = true; game.pontos += 500; alert(`Conquista: ${a.nome}!`); }
     }
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); doJump(); }
-});
-canvas.addEventListener('click', doJump);
-canvas.addEventListener('touchstart', e => { e.preventDefault(); doJump(); }, { passive: false });
-
-startBtn.addEventListener('click', handleStartBtn);
-document.getElementById('practiceTutorial').addEventListener('click', () => startPractice('tutorial'));
-document.getElementById('practiceClassic').addEventListener('click', () => startPractice('classic'));
-document.getElementById('practiceBack').addEventListener('click', () => {
-  practiceOverlay.classList.add('hidden');
-  overlay.classList.remove('hidden');
-  deathMsg.classList.remove('show');
-  startBtn.textContent = 'INICIAR';
-  state = 'menu';
-});
-
-function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-}
-
-function circleRectsOverlap(cx, cy, cr, rx, ry, rw, rh) {
-  const nx = Math.max(rx, Math.min(cx, rx + rw));
-  const ny = Math.max(ry, Math.min(cy, ry + rh));
-  const dx = cx - nx, dy = cy - ny;
-  return dx * dx + dy * dy < cr * cr;
-}
-
-function checkCollisions() {
-  const px = player.x, py = player.y, pw = player.w, ph = player.h;
-
-  for (const obs of obstacles) {
-    if (obs.type === 'spike' || obs.type === 'cspike' || obs.type === 'block' || obs.type === 'mblock' || obs.type === 'laser') {
-      if (rectsOverlap(px, py, pw, ph, obs.x, obs.y, obs.w, obs.h)) { 
-        die(); 
-        return; 
-      }
-    }
-  }
-
-  for (const c of collectibles) {
-    if (c.collected) continue;
-    if (circleRectsOverlap(c.x, c.y, c.r, px, py, pw, ph)) {
-      c.collected = true;
-      if (c.type === 'gem') { score += 50; spawnCollectParticles(c.x, c.y, '#ffee00'); }
-      else if (c.type === 'shield') {
-        useInvincibility = true;
-        spawnCollectParticles(c.x, c.y, '#ffee00');
-      }
-      else if (c.type === 'flip') {
-        gravityFlipped = !gravityFlipped;
-        player.y = gravityFlipped ? 0 : GROUND_Y - player.h;
-        player.vy = 0; jumpCount = 0;
-        spawnCollectParticles(c.x, c.y, '#ff00ff');
-      }
-    }
-  }
-}
-
-function glow(color, blur = 15) {
-  ctx.shadowColor = color;
-  ctx.shadowBlur = blur;
-}
-function noGlow() { ctx.shadowBlur = 0; }
-
-function drawSpike(obs) {
-  const { x, y, w, h, color, glow: gc, type } = obs;
-  ctx.save();
-  glow(gc, 18);
-  ctx.fillStyle = color;
-  ctx.strokeStyle = gc;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  if (type === 'cspike') {
-    ctx.moveTo(x + w / 2, y + h);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x + w, y);
-  } else {
-    ctx.moveTo(x + w / 2, y);
-    ctx.lineTo(x, y + h);
-    ctx.lineTo(x + w, y + h);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  noGlow();
-  ctx.restore();
-}
-
-function drawBlock(obs) {
-  const { x, y, w, h, color, glow: gc } = obs;
-  ctx.save();
-  glow(gc, 15);
-  const grad = ctx.createLinearGradient(x, y, x + w, y + h);
-  grad.addColorStop(0, color);
-  grad.addColorStop(1, gc);
-  ctx.fillStyle = grad;
-  ctx.strokeStyle = gc;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, 4);
-  ctx.fill();
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x + 3, y + 3, w - 6, h - 6, 2);
-  ctx.stroke();
-  noGlow();
-  ctx.restore();
-}
-
-function drawLaser(obs) {
-  const { x, y, w, h, glow: gc } = obs;
-  ctx.save();
-  const alpha = 0.7 + 0.3 * Math.sin(frame * 0.3);
-  glow(gc, 25);
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = gc;
-  ctx.fillRect(x, y, w, h);
-  ctx.globalAlpha = 1;
-  noGlow();
-  ctx.restore();
-}
-
-function drawPlayer() {
-  const { x, y, w, h, color, glowColor, angle } = player;
-  ctx.save();
-  ctx.translate(x + w / 2, y + h / 2);
-  ctx.rotate(angle);
-
-  if (invincible) {
-    ctx.save();
-    glow('#ffee00', 30);
-    ctx.strokeStyle = '#ffee00';
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.5 + 0.5 * Math.sin(frame * 0.2);
-    ctx.beginPath();
-    ctx.arc(0, 0, w * 0.82, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-    ctx.restore();
-  }
-
-  glow(glowColor, 24);
-  ctx.strokeStyle = glowColor;
-  ctx.lineWidth = 2.5;
-  ctx.fillStyle = 'rgba(0,0,20,0.9)';
-  ctx.beginPath();
-  ctx.roundRect(-w / 2, -h / 2, w, h, 5);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(0, -h * 0.25);
-  ctx.lineTo(w * 0.25, 0);
-  ctx.lineTo(0, h * 0.25);
-  ctx.lineTo(-w * 0.25, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  const s = 5;
-  ctx.fillStyle = glowColor;
-  [[-w/2+2,-h/2+2],[w/2-2-s,-h/2+2],[-w/2+2,h/2-2-s],[w/2-2-s,h/2-2-s]].forEach(([cx,cy]) => {
-    ctx.fillRect(cx, cy, s, s);
   });
-
-  noGlow();
-  ctx.restore();
-}
-
-function drawCollectible(c) {
-  ctx.save();
-  ctx.translate(c.x, c.y);
-  ctx.rotate(c.angle);
-  const pulse = 1 + 0.15 * Math.sin(frame * 0.1 + c.x);
-
-  if (c.type === 'gem') {
-    glow('#ffee00', 20);
-    ctx.fillStyle = '#ffee00';
-    ctx.strokeStyle = '#ffaa00';
-    ctx.lineWidth = 1.5;
-    ctx.save();
-    ctx.scale(pulse, pulse);
-    ctx.beginPath();
-    ctx.moveTo(0, -c.r);
-    ctx.lineTo(c.r * 0.6, 0);
-    ctx.lineTo(0, c.r);
-    ctx.lineTo(-c.r * 0.6, 0);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
-  } else if (c.type === 'shield') {
-    glow('#ffee00', 20);
-    ctx.fillStyle = 'rgba(255,220,0,0.3)';
-    ctx.strokeStyle = '#ffee00';
-    ctx.lineWidth = 2;
-    ctx.save(); ctx.scale(pulse, pulse);
-    ctx.beginPath(); ctx.arc(0, 0, c.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ffee00';
-    ctx.font = `bold ${c.r * 1.1}px sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('🛡', 0, 0);
-    ctx.restore();
-  } else if (c.type === 'flip') {
-    glow('#ff00ff', 20);
-    ctx.fillStyle = 'rgba(255,0,255,0.3)';
-    ctx.strokeStyle = '#ff00ff';
-    ctx.lineWidth = 2;
-    ctx.save(); ctx.scale(pulse, pulse);
-    ctx.beginPath(); ctx.arc(0, 0, c.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ff00ff';
-    ctx.font = `bold ${c.r}px sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('↕', 0, 1);
-    ctx.restore();
-  }
-
-  noGlow();
-  ctx.restore();
-}
-
-function drawBg() {
-  const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-  skyGrad.addColorStop(0, '#020215');
-  skyGrad.addColorStop(1, '#050530');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(0, 0, W, GROUND_Y);
-
-  ctx.save();
-  for (const s of stars) {
-    s.x -= s.speed * (speed / BASE_SPEED);
-    if (s.x < 0) s.x = W + 5;
-    ctx.globalAlpha = s.alpha * (0.7 + 0.3 * Math.sin(frame * 0.05 + s.x));
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  ctx.restore();
-
-  for (const layer of bgLayers) {
-    layer.offset = (layer.offset + layer.speed * (speed / BASE_SPEED)) % (W + 200);
-    for (const shape of layer.shapes) {
-      const dx = (shape.x - layer.offset + W + 200) % (W + 200) - 100;
-      if (layer.speed < 0.5) {
-        ctx.fillStyle = shape.color;
-        ctx.beginPath();
-        ctx.moveTo(dx + shape.w / 2, GROUND_Y - shape.h);
-        ctx.lineTo(dx, GROUND_Y);
-        ctx.lineTo(dx + shape.w, GROUND_Y);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        ctx.fillStyle = shape.color;
-        ctx.fillRect(dx, GROUND_Y - shape.h, shape.w, shape.h);
-        if (shape.windows) {
-          shape.windows.forEach((win, i) => {
-            if (win.lit) {
-              ctx.fillStyle = win.color;
-              ctx.globalAlpha = 0.4 + 0.3 * Math.sin(frame * 0.02 + i);
-              const wx = dx + 4 + (i % 2) * (shape.w / 2 - 6);
-              const wy = GROUND_Y - shape.h + 6 + Math.floor(i / 2) * 16;
-              ctx.fillRect(wx, wy, shape.w / 2 - 10, 10);
-              ctx.globalAlpha = 1;
-            }
-          });
-        }
-      }
-    }
-  }
-}
-
-function drawGround() {
-  const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
-  groundGrad.addColorStop(0, '#0a0a30');
-  groundGrad.addColorStop(1, '#050510');
-  ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-
-  glow('#00ffcc', 12);
-  ctx.strokeStyle = '#00ffcc';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(0, GROUND_Y);
-  ctx.lineTo(W, GROUND_Y);
-  ctx.stroke();
-
-  ctx.globalAlpha = 0.12;
-  ctx.strokeStyle = '#00ffcc';
-  ctx.lineWidth = 1;
-  ctx.shadowBlur = 0;
-  const gridOff = (frame * speed * 0.5) % 60;
-  for (let gx = -gridOff; gx < W; gx += 60) {
-    ctx.beginPath();
-    ctx.moveTo(gx, GROUND_Y);
-    ctx.lineTo(gx, H);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-
-  glow('#ff00ff', 8);
-  ctx.strokeStyle = 'rgba(255,0,255,0.3)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(0, 2); ctx.lineTo(W, 2);
-  ctx.stroke();
-  noGlow();
-}
-
-function drawParticles() {
-  for (const p of particles) {
-    ctx.save();
-    ctx.globalAlpha = p.life;
-    glow(p.color, 8);
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    noGlow();
-    ctx.restore();
-  }
-}
-
-function drawTrail() {
-  for (const t of trailParticles) {
-    ctx.save();
-    ctx.globalAlpha = t.life * 0.4;
-    glow(player.glowColor, 10);
-    ctx.fillStyle = player.glowColor;
-    ctx.beginPath();
-    ctx.roundRect(t.x, t.y, t.w * t.life, t.h * t.life, 3);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    noGlow();
-    ctx.restore();
-  }
-}
-
-function drawFlash() {
-  if (flashAlpha > 0) {
-    ctx.fillStyle = `rgba(255,50,50,${flashAlpha})`;
-    ctx.fillRect(0, 0, W, H);
-    flashAlpha = Math.max(0, flashAlpha - 0.05);
-  }
-}
-
-function drawTutorial() {
-  if (!tutorialActive) return;
-  
-  const messages = [
-    '← PULE COM ESPAÇO OU SETA CIMA',
-    '← CLIQUE PARA PULAR (TOQUE TAMBÉM)',
-    '← VOCÊ PODE PULAR 2 VEZES',
-    '← EVITE OS ESPINHOS',
-    '← PEGUE AS GEMAS PARA GANHAR PONTOS',
-    '← O ESCUDO PROTEGE DE 1 DANO',
-    '← A SETA INVERTE A GRAVIDADE',
-    '← PORTAIS SÃO GAPS, PULE PARA PASSAR'
-  ];
-
-  if (tutorialStep < messages.length) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, 0, W, 60);
-    ctx.fillStyle = '#00ffcc';
-    ctx.font = 'bold 14px Orbitron';
-    ctx.textAlign = 'center';
-    ctx.fillText(messages[tutorialStep], W / 2, 35);
-    ctx.restore();
-  }
 }
 
 function update() {
-  frame++;
-  const gDir = gravityFlipped ? -1 : 1;
+  document.getElementById('score').innerText = Math.floor(game.pontos).toLocaleString('pt-BR');
+  let ppsTotal = game.pontosPorSegundo * (1 + game.prestigio * 0.1);
+  if(game.event.active && game.event.type === '2x') ppsTotal *= 2;
+  document.getElementById('pps').innerText = `${ppsTotal.toFixed(1)}/s`;
+  document.getElementById('multiplier').innerText = `Multiplicador: x${(1 + game.prestigio * 0.1).toFixed(2)}`;
+  document.getElementById('crit').innerText = `Crítico: ${(game.critChance*100).toFixed(1)}%`;
+  document.getElementById('prestigeReward').innerText = Math.floor(Math.sqrt(game.pontos / 100000));
+  document.getElementById('prestigeBtn').disabled = game.pontos < 100000;
+  renderUpgrades(); renderMissions(); renderAchievements(); renderSkins(); renderStats(); renderRanking();
+  checkMissions(); checkAchievements(); saveGame();
+}
 
-  speed = BASE_SPEED + Math.floor(score / 300) * 0.4;
-  level = 1 + Math.floor(score / 300);
-  levelDisplay.textContent = level;
-
-  if (invincible) {
-    invTimer--;
-    if (invTimer <= 0) {
-      invincible = false;
-      player.color = '#00ffcc';
-      player.glowColor = '#00ffcc';
-    }
-  }
-
-  player.vy += GRAVITY * gDir;
-  player.y += player.vy;
-
-  if (!gravityFlipped && player.y >= GROUND_Y - player.h) {
-    player.y = GROUND_Y - player.h;
-    player.vy = 0;
-    jumpCount = 0;
-  }
-  if (gravityFlipped && player.y <= 0) {
-    player.y = 0;
-    player.vy = 0;
-    jumpCount = 0;
-  }
-  if (!gravityFlipped && player.y < -player.h) { player.y = -player.h; player.vy = 0; }
-  if (gravityFlipped && player.y > GROUND_Y - player.h) { player.y = GROUND_Y - player.h; player.vy = 0; }
-
-  const onGround2 = gravityFlipped ? player.y <= 0 : player.y >= GROUND_Y - player.h - 1;
-  if (!onGround2) {
-    player.angle += 0.08 * gDir;
-  } else {
-    const snap = Math.round(player.angle / (Math.PI / 2)) * (Math.PI / 2);
-    player.angle += (snap - player.angle) * 0.3;
-  }
-
-  if (frame % 3 === 0) {
-    trailParticles.push({ x: player.x, y: player.y, w: player.w, h: player.h, life: 1 });
-  }
-  trailParticles.forEach(t => t.life -= 0.06);
-  trailParticles = trailParticles.filter(t => t.life > 0);
-
-  distance++;
-  const minGap = Math.max(180, 280 - level * 8);
-  const lastObs = obstacles[obstacles.length - 1];
-  if (!lastObs || W - (lastObs.x || W) > minGap) {
-    if (Math.random() < 0.6) spawnObstacle();
-  }
-
-  for (const obs of obstacles) {
-    obs.x -= speed;
-    if (obs.type === 'mblock') {
-      obs.y += obs.vy;
-      if (obs.y > obs.maxY || obs.y < obs.minY) obs.vy *= -1;
-    }
-  }
-  obstacles = obstacles.filter(o => o.x + (o.w || 60) > -20);
-
-  if (frame % 120 === 0 && Math.random() < 0.5) spawnCollectible();
-  for (const c of collectibles) {
-    c.x -= speed;
-    c.angle += 0.05;
-  }
-  collectibles = collectibles.filter(c => c.x + c.r > -20 && !c.collected);
-
-  particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.15;
-    p.life -= p.decay;
+function renderUpgrades() {
+  let htmlPPS = ''; game.upgrades.forEach((u,i) => {
+    htmlPPS += `<div class="upgrade ${game.pontos < u.cost? 'locked' : ''}" onclick="buyUpgrade('pps', ${i})">
+      <b>${u.nome}</b><span class="owned">${u.owned}</span><br><span>${u.desc}</span><br>
+      <span class="cost">${u.cost.toLocaleString('pt-BR')}</span></div>`;
   });
-  particles = particles.filter(p => p.life > 0);
-
-  shakeX *= 0.85; shakeY *= 0.85;
-
-  score++;
-  distance++;
-  scoreDisplay.textContent = score;
-  progressPct = (score % 300) / 300 * 100;
-  progressFill.style.width = progressPct + '%';
-
-  if (tutorialActive && frame % 120 === 0) {
-    tutorialStep++;
-  }
-
-  checkCollisions();
+  let htmlClick = ''; game.upgradesClique.forEach((u,i) => {
+    htmlClick += `<div class="upgrade ${game.pontos < u.cost? 'locked' : ''}" onclick="buyUpgrade('cpp', ${i})">
+      <b>${u.nome}</b><span class="owned">${u.owned}</span><br><span>${u.desc}</span><br>
+      <span class="cost">${u.cost.toLocaleString('pt-BR')}</span></div>`;
+  });
+  document.getElementById('upgradesPPS').innerHTML = htmlPPS;
+  document.getElementById('upgradesClick').innerHTML = htmlClick;
 }
 
-function draw() {
-  ctx.save();
-  ctx.translate(
-    Math.round((Math.random() - 0.5) * shakeX),
-    Math.round((Math.random() - 0.5) * shakeY)
-  );
-
-  ctx.clearRect(-20, -20, W + 40, H + 40);
-  drawBg();
-  drawGround();
-  drawTrail();
-
-  for (const c of collectibles) drawCollectible(c);
-
-  for (const obs of obstacles) {
-    if (obs.type === 'spike' || obs.type === 'cspike') drawSpike(obs);
-    else if (obs.type === 'laser') drawLaser(obs);
-    else drawBlock(obs);
-  }
-
-  drawPlayer();
-  drawParticles();
-  drawFlash();
-
-  if (gravityFlipped) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(255,0,255,0.08)';
-    ctx.fillRect(0, 0, W, 20);
-    glow('#ff00ff', 8);
-    ctx.fillStyle = 'rgba(255,0,255,0.6)';
-    ctx.font = '10px Orbitron';
-    ctx.textAlign = 'center';
-    ctx.fillText('▼ GRAVIDADE INVERTIDA ▼', W / 2, 14);
-    noGlow();
-    ctx.restore();
-  }
-
-  drawTutorial();
-
-  ctx.restore();
+function renderMissions() {
+  let html = ''; game.missions.forEach(m => {
+    html += `<div class="mission ${m.done?'done':''}"><b>${m.nome}</b> ${m.done?'✅':''}<br>
+      Recompensa: <span class="cost">${m.reward.toLocaleString('pt-BR')}</span></div>`;
+  });
+  document.getElementById('missions').innerHTML = html;
 }
 
-function loop() {
-  if (state === 'playing') update();
-  draw();
-  requestAnimationFrame(loop);
+function renderAchievements() {
+  let html = ''; game.achievements.forEach(a => {
+    html += `<div class="achievement ${a.done?'done':''}"><b>${a.nome}</b> ${a.done?'🏆':''}<br>${a.desc}</div>`;
+  });
+  document.getElementById('achievements').innerHTML = html;
 }
 
-hiDisplay.textContent = hiScore;
-deathMsg.classList.remove('show');
-startBtn.textContent = 'INICIAR';
-initBg();
-loop();
+function renderSkins() {
+  let html = ''; game.skins.forEach((s,i) => {
+    html += `<div class="skin ${!s.owned && game.pontos < s.cost?'locked':''}" onclick="buySkin(${i})">
+      <b>${s.nome}</b> ${game.skinEquipada===s.id?'✔️':''}<br>
+      <span class="cost">${s.owned?'Equipado':s.cost===0?'Grátis':s.cost.toLocaleString('pt-BR')}</span></div>`;
+  });
+  document.getElementById('skins').innerHTML = html;
+}
+
+function renderStats() {
+  let totalUpgrades = [...game.upgrades,...game.upgradesClique].reduce((a,u)=>a+u.owned,0);
+  document.getElementById('stats').innerHTML = `
+    Total clicado: ${game.totalClicado.toLocaleString('pt-BR')}<br>
+    Prestígio: ${game.prestigio}✨<br>
+    Bosses: ${game.boss.kills}<br>
+    Upgrades: ${totalUpgrades}<br>
+    Tempo: ${Math.floor(game.tempoJogado/60)}min
+  `;
+}
+
+function renderRanking() {
+  let ranking = JSON.parse(localStorage.getItem('clickerRanking') || '[]');
+  ranking.sort((a,b)=>b.score-a.score);
+  let html = ''; ranking.slice(0,5).forEach((r,i)=>html+=`${i+1}. ${r.score.toLocaleString('pt-BR')}<br>`);
+  document.getElementById('ranking').innerHTML = html || 'Sem recordes ainda';
+}
+
+function saveGame() {
+  localStorage.setItem('clickerUltra', JSON.stringify(game));
+  let ranking = JSON.parse(localStorage.getItem('clickerRanking') || '[]');
+  ranking.push({score: Math.floor(game.pontos), date: Date.now()});
+  ranking = ranking.slice(-10);
+  localStorage.setItem('clickerRanking', JSON.stringify(ranking));
+}
+
+function loadGame() {
+  let save = localStorage.getItem('clickerUltra');
+  if(save) game = JSON.parse(save);
+  let skin = game.skins.find(s=>s.id===game.skinEquipada);
+  if(skin) document.getElementById('botao').style.background = skin.color;
+}
+
+function resetSave() {
+  if(confirm("Apagar tudo?")) { localStorage.removeItem('clickerUltra'); location.reload(); }
+}
+
+// Loops principais
+setInterval(() => {
+  game.pontos += game.pontosPorSegundo * (1 + game.prestigio * 0.1) * (game.event.active&&game.event.type==='2x'?2:1);
+  game.tempoJogado += 1; updateEvent(); update();
+}, 1000);
+
+setInterval(() => { if(Math.random() < 0.02) spawnBoss(); }, 5000);
+setInterval(() => { if(Math.random() < 0.01) triggerEvent(); }, 10000);
+
+loadGame(); update();
 </script>
 </body>
 </html>
