@@ -459,3 +459,191 @@ function loadGame() {
     let loaded = JSON.parse(save);
     // Progresso offline
     let offlineTime = Math.floor((Date.now() - loaded.ultimoLogin) / 1000);
+        // Progresso offline
+    let offlineTime = Math.floor((Date.now() - loaded.ultimoLogin) / 1000);
+    let offlineGanho = loaded.pontosPorSegundo * (1 + loaded.prestigio * 0.1) * Math.min(offlineTime, 3600);
+    loaded.pontos += offlineGanho;
+    document.getElementById('offline').innerText = `Offline:${formatNum(offlineGanho)}`;
+    if(offlineGanho > 0) alert(`Bem vindo de volta! +${formatNum(offlineGanho)} offline`);
+
+    game = loaded;
+  }
+  game.ultimoLogin = Date.now();
+  let skin = game.skins.find(s=>s.id===game.skinEquipada);
+  if(skin) document.getElementById('botao').style.background = skin.color;
+  document.getElementById('vibToggle').checked = game.settings.vibration;
+  document.getElementById('soundToggle').checked = game.settings.sound;
+  document.getElementById('autoSaveToggle').checked = game.settings.autoSave;
+  document.body.setAttribute('data-theme', game.settings.theme);
+  document.getElementById('themeBtn').innerText = `Tema: ${game.settings.theme==='dark'?'Escuro':'Claro'}`;
+}
+
+// ===== RENDER =====
+function update() {
+  let displayScore = formatNum(game.pontos);
+  document.getElementById('score').innerText = displayScore;
+  document.getElementById('topScore').innerText = displayScore;
+
+  let ppsTotal = game.pontosPorSegundo * (1 + game.prestigio * 0.1);
+  if(game.event.active && game.event.type === '2x') ppsTotal *= 2;
+  if(game.event.active && game.event.type === 'auto') game.pontos += ppsTotal/10;
+  if(game.event.active && game.event.type === 'crit') game.critChance = 1;
+  if(game.event.active && game.event.type === 'mega') ppsTotal *= 5;
+
+  document.getElementById('pps').innerText = `${formatNum(ppsTotal)}/s`;
+  document.getElementById('topPPS').innerText = `${formatNum(ppsTotal)}/s`;
+  document.getElementById('multiplier').innerText = `x${(1 + game.prestigio * 0.1).toFixed(2)}`;
+  document.getElementById('crit').innerText = `Crit:${(game.critChance*100).toFixed(0)}%`;
+  document.getElementById('prestBadge').innerText = `Prest:${game.prestigio}`;
+  document.getElementById('prestigeReward').innerText = Math.floor(Math.sqrt(game.pontos / 100000));
+  document.getElementById('prestigeBtn').disabled = game.pontos < 100000;
+
+  renderUpgrades(); renderMissions(); renderAchievements(); renderSkins(); renderStats(); renderRanking(); renderFriends();
+  checkMissions(); checkAchievements();
+  if(game.settings.autoSave) saveGame();
+}
+
+function renderUpgrades() {
+  let htmlPPS = ''; game.upgrades.forEach((u,i) => {
+    htmlPPS += `<div class="upgrade ${game.pontos < u.cost? 'locked' : ''}" onclick="buyUpgrade('pps', ${i})">
+      <b>${u.nome}</b><span class="owned">${u.owned}</span><br><span>${u.desc}</span><br>
+      <span class="cost">${formatNum(u.cost)}</span></div>`;
+  });
+  let htmlClick = ''; game.upgradesClique.forEach((u,i) => {
+    htmlClick += `<div class="upgrade ${game.pontos < u.cost? 'locked' : ''}" onclick="buyUpgrade('cpp', ${i})">
+      <b>${u.nome}</b><span class="owned">${u.owned}</span><br><span>${u.desc}</span><br>
+      <span class="cost">${formatNum(u.cost)}</span></div>`;
+  });
+  document.getElementById('upgradesPPS').innerHTML = htmlPPS;
+  document.getElementById('upgradesClick').innerHTML = htmlClick;
+}
+
+function renderMissions() {
+  let html = ''; game.missions.forEach(m => {
+    html += `<div class="mission ${m.done?'done':''}"><b>${m.nome}</b> ${m.done?'✅':''}<br>
+      Recompensa: <span class="cost">${formatNum(m.reward)}</span></div>`;
+  });
+  document.getElementById('missionsTab').innerHTML = html;
+}
+
+function renderAchievements() {
+  let html = ''; game.achievements.forEach(a => {
+    html += `<div class="achievement ${a.done?'done':''}"><b>${a.nome}</b> ${a.done?'🏆':''}<br>
+      ${a.desc}<br><span class="cost">+${formatNum(a.reward)}</span></div>`;
+  });
+  document.getElementById('achTab').innerHTML = html;
+}
+
+function renderSkins() {
+  let html = ''; game.skins.forEach((s,i) => {
+    html += `<div class="skin ${!s.owned && game.pontos < s.cost?'locked':''}" onclick="buySkin(${i})">
+      <b>${s.nome}</b> ${game.skinEquipada===s.id?'✔️':''}<br>
+      <span class="cost">${s.owned?'Equipado':s.cost===0?'Grátis':formatNum(s.cost)}</span></div>`;
+  });
+  document.getElementById('skinsTab').innerHTML = html;
+}
+
+function renderFriends() {
+  let html = ''; game.amigos.forEach((f,i) => {
+    html += `<div class="friend"><span>${f.nome}</span><button onclick="compareFriend(${i})">VS</button></div>`;
+  });
+  document.getElementById('friendsList').innerHTML = html || '<div style="opacity:0.5">Nenhum amigo ainda</div>';
+}
+
+function renderStats() {
+  let totalUpgrades = [...game.upgrades,...game.upgradesClique].reduce((a,u)=>a+u.owned,0);
+  document.getElementById('stats').innerHTML = `
+    Clicks: ${formatNum(game.totalClicado)}<br>
+    Prestígio: ${game.prestigio}✨<br>
+    Bosses: ${game.boss.kills}<br>
+    Upgrades: ${totalUpgrades}<br>
+    Conquistas: ${game.conquistasDesbloqueadas}/7<br>
+    Tempo: ${Math.floor(game.tempoJogado/3600)}h ${Math.floor((game.tempoJogado%3600)/60)}min
+  `;
+}
+
+function renderRanking() {
+  let ranking = JSON.parse(localStorage.getItem('clickerRanking') || '[]');
+  ranking.sort((a,b)=>b.score-a.score);
+  let html = '';
+  ranking.slice(0,10).forEach((r,i)=>html+=`${i+1}. ${r.nome}: ${formatNum(r.score)}<br>`);
+  document.getElementById('ranking').innerHTML = html || 'Sem recordes ainda';
+}
+
+// ===== UI + CONFIG =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(tab==='pps'){document.getElementById('upgradesPPS').style.display='block';document.getElementById('upgradesClick').style.display='none';}
+  if(tab==='click'){document.getElementById('upgradesPPS').style.display='none';document.getElementById('upgradesClick').style.display='block';}
+  if(tab==='skins'){document.getElementById('skinsTab').style.display='block';document.getElementById('missionsTab').style.display='none';document.getElementById('achTab').style.display='none';}
+  if(tab==='mis'){document.getElementById('skinsTab').style.display='none';document.getElementById('missionsTab').style.display='block';document.getElementById('achTab').style.display='none';}
+  if(tab==='ach'){document.getElementById('skinsTab').style.display='none';document.getElementById('missionsTab').style.display='none';document.getElementById('achTab').style.display='block';}
+  event.target.classList.add('active');
+}
+
+function toggleMenu(side) {
+  document.getElementById(side==='left'?'menuLeft':'menuRight').classList.toggle('menuOpen');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeMenus() {
+  document.querySelectorAll('.sideMenu').forEach(m=>m.classList.remove('menuOpen'));
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function toggleTheme() {
+  game.settings.theme = game.settings.theme==='dark'?'light':'dark';
+  document.body.setAttribute('data-theme', game.settings.theme);
+  document.getElementById('themeBtn').innerText = `Tema: ${game.settings.theme==='dark'?'Escuro':'Claro'}`;
+}
+
+function toggleSetting(setting) {
+  game.settings[setting] = document.getElementById(setting==='vibration'?'vibToggle':setting==='sound'?'soundToggle':'autoSaveToggle').checked;
+}
+
+function exportSave() {
+  let data = btoa(JSON.stringify(game));
+  navigator.clipboard.writeText(data);
+  alert('Save copiado! Cole em qualquer lugar pra salvar.');
+}
+
+function importSave() {
+  let data = prompt('Cole seu save aqui:');
+  if(data) {
+    try {
+      game = JSON.parse(atob(data));
+      saveGame(); location.reload();
+    } catch(e) { alert('Save inválido!'); }
+  }
+}
+
+function resetSave() {
+  if(confirm("APAGAR TUDO MESMO?")) {
+    localStorage.removeItem('clickerInfinity');
+    localStorage.removeItem('clickerRanking');
+    location.reload();
+  }
+}
+
+// ===== LOOPS PRINCIPAIS =====
+setInterval(() => {
+  let bonus = 1;
+  if(game.event.active && game.event.type === '2x') bonus = 2;
+  if(game.event.active && game.event.type === 'mega') bonus = 5;
+  game.pontos += game.pontosPorSegundo * (1 + game.prestigio * 0.1) * bonus;
+  game.tempoJogado += 1;
+  updateEvent();
+  update();
+}, 1000);
+
+setInterval(() => { if(Math.random() < 0.04) spawnBoss(); }, 10000);
+setInterval(() => { if(Math.random() < 0.02) triggerEvent(); }, 20000);
+
+// Anti zoom mobile
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+// INICIAR
+loadGame();
+update();
+</script>
+</body>
+</html>
