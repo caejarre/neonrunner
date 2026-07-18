@@ -2,123 +2,155 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-<title>Clicker Mobile Ultra</title>
-<meta name="theme-color" content="#0a0a0f">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
+<title>Clicker Infinity</title>
+<meta name="theme-color" content="#05050a">
+<link rel="manifest" href="data:application/json,{">
 <style>
-  /* ===== RESET E BASE ===== */
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; overflow: hidden; background: #05050a; color: #eee; font-family: 'Segoe UI', Roboto, sans-serif; }
+  /* ===== SISTEMA DE TEMA ===== */
+  :root {
+    --bg: #05050a; --bg2: #0f0f1a; --bg3: #1a1a2e; --text: #e0e0ff;
+    --accent: #f72585; --accent2: #7209b7; --gold: #ffd700; --blue: #4cc9f0; --green: #06d6a0;
+  }
+  [data-theme="light"] {
+    --bg: #f5f5ff; --bg2: #ffffff; --bg3: #e8e8f0; --text: #1a1a2e;
+    --accent: #c9184a; --accent2: #560bad; --gold: #ff8c00; --blue: #0077b6; --green: #04a777;
+  }
+
+  /* ===== RESET ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
   body { display: flex; flex-direction: column; }
 
-  /* ===== HEADER MOBILE ===== */
+  /* ===== HEADER FLUTUANTE ===== */
   #topbar {
-    height: 60px; background: #121220; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 15px; border-bottom: 2px solid #222; position: relative; z-index: 10;
+    height: 70px; background: rgba(15,15,26,0.8); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 15px; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 100;
   }
-  #topScore { font-size: 1.4rem; font-weight: bold; color: #ffd700; }
-  #topPPS { font-size: 0.9rem; color: #aaa; }
-  #menuBtn { background: #f72585; border: none; color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; }
+  #topInfo { display: flex; flex-direction: column; }
+  #topScore { font-size: 1.6rem; font-weight: 900; color: var(--gold); letter-spacing: -1px; }
+  #topPPS { font-size: 0.9rem; color: var(--blue); }
+  #topBtns { display: flex; gap: 8px; }
+.iconBtn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: white; padding: 10px 14px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(247,37,133,0.3); }
+.iconBtn:active { transform: scale(0.92); }
 
-  /* ===== AREA CENTRAL ===== */
+  /* ===== AREA DO JOGO ===== */
   #gameArea {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    position: relative; overflow: hidden; background: radial-gradient(circle at center, #1a1a2e 0%, #05050a 100%);
+    position: relative; overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, var(--bg3) 0%, var(--bg) 70%);
   }
-  #score { font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 0 20px #ffd700; margin-bottom: 5px; }
-  #pps { font-size: 1rem; color: #90e0ef; margin-bottom: 20px; }
+  #score { font-size: 3.2rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px var(--gold); margin-bottom: 5px; }
+  #pps { font-size: 1.1rem; color: var(--blue); margin-bottom: 25px; font-weight: 600; }
 
+  /* ===== BOTAO PRINCIPAL COM EFEITOS ===== */
   #botao {
-    width: 65vw; height: 65vw; max-width: 300px; max-height: 300px; border-radius: 50%;
-    background: radial-gradient(circle, #ff4d6d, #c9184a);
-    border: 8px solid #ff758f;
-    font-size: 2rem; font-weight: bold; color: white;
-    cursor: pointer; transition: all 0.05s;
-    box-shadow: 0 0 50px rgba(255,77,109,0.8), inset 0 0 30px rgba(255,255,255,0.2);
-    display: flex; align-items: center; justify-content: center;
+    width: 75vw; height: 75vw; max-width: 340px; max-height: 340px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ff7b9c, #c9184a);
+    border: 12px solid rgba(255,117,143,0.5);
+    font-size: 2.4rem; font-weight: 900; color: white;
+    cursor: pointer; transition: all 0.08s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 80px rgba(255,77,109,0.6), inset 0 0 50px rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center; position: relative;
   }
-  #botao:active { transform: scale(0.88); box-shadow: 0 0 20px rgba(255,77,109,1); }
+  #botao:active { transform: scale(0.82); filter: brightness(1.3); }
+  #botao::before { content: ''; position: absolute; inset: -20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); animation: ripple 2s infinite; }
+  @keyframes ripple { 0%{transform:scale(0.8);opacity:1} 100%{transform:scale(1.4);opacity:0} }
 
-  #statsRow { display: flex; gap: 15px; margin-top: 20px; font-size: 0.9rem; }
-  #multiplier, #crit { background: #1e1e35; padding: 8px 12px; border-radius: 20px; }
+  /* ===== STATS BADGES ===== */
+  #statsRow { display: flex; gap: 8px; margin-top: 25px; flex-wrap: wrap; justify-content: center; }
+.statBadge { background: rgba(26,26,46,0.6); backdrop-filter: blur(10px); padding: 10px 16px; border-radius: 25px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); }
 
-  /* ===== BOSS MOBILE ===== */
-  #boss { position: absolute; top: 5%; width: 100px; height: 100px; background: radial-gradient(#ff0000,#800000);
-    border-radius: 20px; display: none; cursor: pointer; animation: bossFloat 1.5s infinite;
-    box-shadow: 0 0 30px rgba(255,0,0,0.7);
+  /* ===== BOSS COM HP BAR ===== */
+  #boss { position: absolute; top: 10%; width: 120px; height: 120px; background: radial-gradient(circle, #ff3333, #8b0000);
+    border-radius: 25px; display: none; cursor: pointer; animation: bossFloat 1s infinite ease-in-out;
+    box-shadow: 0 0 50px rgba(255,0,0,0.9); border: 3px solid #ff6666;
   }
-  @keyframes bossFloat { 0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-15px) rotate(2deg)} }
-  #bossHp { position: absolute; top: -15px; width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
-  #bossHpBar { height: 100%; background: linear-gradient(90deg,#ff0000,#ff6b6b); transition: width 0.1s; }
+  @keyframes bossFloat { 0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-25px) rotate(4deg)} }
+  #bossHp { position: absolute; top: -20px; width: 100%; height: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; overflow: hidden; }
+  #bossHpBar { height: 100%; background: linear-gradient(90deg,#ff0000,#ffaa00); transition: width 0.1s linear; }
 
-  /* ===== MENU LATERAL ===== */
- .sideMenu {
-    position: fixed; top: 0; width: 85vw; max-width: 350px; height: 100%; background: #121220;
-    transition: transform 0.3s; z-index: 20; overflow-y: auto; padding: 20px;
-    border-right: 2px solid #222;
+  /* ===== MENUS LATERAIS DESLIZANTES ===== */
+.sideMenu {
+    position: fixed; top: 0; width: 92vw; max-width: 400px; height: 100%; background: var(--bg2);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); z-index: 200; overflow-y: auto; padding: 20px;
+    border-right: 1px solid rgba(255,255,255,0.1); box-shadow: 10px 0 50px rgba(0,0,0,0.5);
   }
   #menuLeft { left: 0; transform: translateX(-100%); }
-  #menuRight { right: 0; transform: translateX(100%); border-left: 2px solid #222; border-right: none; }
- .menuOpen { transform: translateX(0)!important; }
- .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
-    display: none; z-index: 15; }
- .overlay.show { display: block; }
+  #menuRight { right: 0; transform: translateX(100%); border-left: 1px solid rgba(255,255,255,0.1); border-right: none; }
+.menuOpen { transform: translateX(0)!important; }
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
+    display: none; z-index: 150; backdrop-filter: blur(5px); }
+.overlay.show { display: block; }
 
-  /* ===== COMPONENTES ===== */
- .upgrade,.mission,.achievement,.skin,.event {
-    background: #1e1e35; padding: 12px; margin: 8px 0; border-radius: 10px;
-    cursor: pointer; border: 1px solid #333; transition: 0.2s;
+  /* ===== CARDS DE UPGRADE ===== */
+.upgrade,.mission,.achievement,.skin,.event,.friend {
+    background: linear-gradient(135deg, var(--bg3), rgba(26,26,46,0.5));
+    padding: 14px; margin: 10px 0; border-radius: 16px;
+    cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: all 0.2s;
   }
- .upgrade:active,.skin:active { transform: scale(0.96); }
- .upgrade.locked,.skin.locked { opacity: 0.4; }
- .cost { color: #4cc9f0; font-weight: bold; }
- .owned { color: #90e0ef; font-size: 0.8rem; float: right; }
- .done { opacity: 0.5; }
+.upgrade:active,.skin:active { transform: scale(0.95); }
+.upgrade:hover { border-color: var(--accent); }
+.upgrade.locked,.skin.locked { opacity: 0.35; filter: grayscale(0.5); }
+.cost { color: var(--blue); font-weight: 800; font-size: 0.95rem; }
+.owned { color: var(--gold); font-size: 0.8rem; float: right; font-weight: 700; }
+.done { opacity: 0.4; }
 
- .float {
-    position: absolute; color: #ffd700; font-weight: bold;
-    animation: floatUp 1.2s forwards; pointer-events: none; font-size: 1.4rem;
-    text-shadow: 0 0 10px #ffd700;
+  /* ===== FLOATING TEXT ===== */
+.float {
+    position: absolute; color: var(--gold); font-weight: 900;
+    animation: floatUp 1.4s cubic-bezier(0.4,0,0.2,1) forwards; pointer-events: none; font-size: 1.6rem;
+    text-shadow: 0 0 20px var(--gold);
   }
   @keyframes floatUp {
     0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-150px) scale(1.8); }
+    100% { opacity: 0; transform: translateY(-180px) scale(2.2); }
   }
 
-  #prestigeBtn, #settingsBtn, #tabBtn {
-    margin-top: 10px; padding: 12px; width: 100%;
-    background: linear-gradient(90deg, #7209b7, #560bad);
-    border: none; border-radius: 10px; color: white; font-weight: bold;
-    cursor: pointer; font-size: 1rem;
+  /* ===== BOTOES ESPECIAIS ===== */
+  #prestigeBtn {
+    margin-top: 15px; padding: 16px; width: 100%;
+    background: linear-gradient(135deg, #7209b7, #560bad);
+    border: none; border-radius: 16px; color: white; font-weight: 900;
+    cursor: pointer; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(114,9,183,0.4);
   }
   #prestigeBtn:disabled { opacity: 0.3; }
 
- .event { background: linear-gradient(90deg,#ff9f1c,#ffbf69); color: #000; font-weight: bold; text-align: center; }
-  h2 { margin: 15px 0 10px 0; color: #f72585; font-size: 1.2rem; border-bottom: 2px solid #f72585; padding-bottom: 5px; }
+.event { background: linear-gradient(90deg,#ff9f1c,#ffbf69); color: #000; font-weight: 900; text-align: center; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.7} }
+  h2 { margin: 20px 0 12px 0; color: var(--accent); font-size: 1.3rem; font-weight: 900; }
 
   /* ===== TABS ===== */
- .tabs { display: flex; gap: 5px; margin-bottom: 10px; }
- .tab { flex: 1; padding: 8px; background: #22223b; border: none; color: #aaa; border-radius: 8px; }
- .tab.active { background: #f72585; color: white; }
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab { flex: 1; padding: 12px; background: var(--bg3); border: none; color: var(--text); border-radius: 12px; font-weight: 700; min-width: 90px; }
+.tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
 
-  /* ===== RESPONSIVO ===== */
-  @media (min-width: 768px) {
+  /* ===== INPUTS ===== */
+input[type="text"] { width:100%;padding:12px;margin:8px 0;background:var(--bg3);border:2px solid rgba(255,255,255,0.1);color:var(--text);border-radius:12px;font-size:1rem; }
+input[type="text"]:focus { border-color: var(--accent); outline: none; }
+
+  /* ===== DESKTOP LAYOUT ===== */
+  @media (min-width: 900px) {
     body { flex-direction: row; }
     #topbar { display: none; }
-   .sideMenu { position: relative; transform: translateX(0)!important; width: 25%; }
-    #gameArea { width: 50%; }
-    #botao { width: 280px; height: 280px; }
+ .sideMenu { position: relative; transform: translateX(0)!important; width: 23%; }
+    #gameArea { width: 54%; }
+    #botao { width: 320px; height: 320px; }
   }
 </style>
 </head>
-<body>
+<body data-theme="dark">
 
 <div id="topbar">
-  <div>
+  <div id="topInfo">
     <div id="topScore">0</div>
     <div id="topPPS">0.0/s</div>
   </div>
-  <button id="menuBtn" onclick="toggleMenu('right')">MENU</button>
+  <div id="topBtns">
+    <button class="iconBtn" onclick="toggleMenu('left')">⚡ UPG</button>
+    <button class="iconBtn" onclick="toggleMenu('right')">📊 MENU</button>
+  </div>
 </div>
 
 <div id="gameArea">
@@ -127,8 +159,10 @@
   <button id="botao" ontouchstart="clickBtn(event)">CLICA</button>
   <div id="boss" ontouchstart="hitBoss(event)"><div id="bossHp"><div id="bossHpBar"></div></div></div>
   <div id="statsRow">
-    <div id="multiplier">x1.00</div>
-    <div id="crit">Crit:5%</div>
+    <div class="statBadge" id="multiplier">x1.00</div>
+    <div class="statBadge" id="crit">Crit:5%</div>
+    <div class="statBadge" id="prestBadge">Prest:0</div>
+    <div class="statBadge" id="offline">Offline:0</div>
   </div>
   <div id="eventTimer"></div>
 </div>
@@ -136,18 +170,18 @@
 <div class="overlay" id="overlay" onclick="closeMenus()"></div>
 
 <div class="sideMenu" id="menuLeft">
-  <h2>Upgrades</h2>
+  <h2>⚡ Upgrades</h2>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('pps')">PPS</button>
     <button class="tab" onclick="switchTab('click')">CLICK</button>
   </div>
   <div id="upgradesPPS"></div>
   <div id="upgradesClick" style="display:none"></div>
-  <button id="prestigeBtn" onclick="prestige()">PRESTÍGIO <span id="prestigeReward">0</span>✨</button>
+  <button id="prestigeBtn" onclick="prestige()">🌟 PRESTÍGIO <span id="prestigeReward">0</span>✨</button>
 </div>
 
 <div class="sideMenu" id="menuRight">
-  <h2>Loja & Progresso</h2>
+  <h2>📊 Progresso</h2>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('skins')">SKINS</button>
     <button class="tab" onclick="switchTab('mis')">MISSÕES</button>
@@ -156,22 +190,37 @@
   <div id="skinsTab"></div>
   <div id="missionsTab" style="display:none"></div>
   <div id="achTab" style="display:none"></div>
-  <h2>Ranking</h2>
+
+  <h2>👥 Amigos</h2>
+  <div id="friendsTab">
+    <input type="text" id="friendName" placeholder="Nome do amigo">
+    <button class="iconBtn" style="width:100%" onclick="addFriend()">+ Adicionar Amigo</button>
+    <div id="friendsList"></div>
+  </div>
+
+  <h2>⚙️ Configurações</h2>
+  <button class="iconBtn" style="width:100%;margin:5px 0" id="themeBtn" onclick="toggleTheme()">Tema: Escuro</button>
+  <button class="iconBtn" style="width:100%;margin:5px 0;background:var(--green)" onclick="exportSave()">📤 Exportar Save</button>
+  <button class="iconBtn" style="width:100%;margin:5px 0;background:var(--blue)" onclick="importSave()">📥 Importar Save</button>
+  <label><input type="checkbox" id="vibToggle" checked onchange="toggleSetting('vibration')"> Vibração</label><br>
+  <label><input type="checkbox" id="soundToggle" checked onchange="toggleSetting('sound')"> Som</label><br>
+  <label><input type="checkbox" id="autoSaveToggle" checked onchange="toggleSetting('autoSave')"> Auto Save</label>
+
+  <h2>🏆 Ranking</h2>
   <div id="ranking"></div>
-  <h2>Stats</h2>
+  <h2>📈 Estatísticas</h2>
   <div id="stats"></div>
-  <button id="settingsBtn" onclick="resetSave()">Resetar Save</button>
+  <button class="iconBtn" style="width:100%;margin-top:10px;background:#c9184a" onclick="resetSave()">🗑️ Resetar TUDO</button>
 </div>
 
-<audio id="clickSound" preload="auto"></audio>
-<audio id="critSound" preload="auto"></audio>
-<audio id="bossSound" preload="auto"></audio>
-
 <script>
-// ===== CONFIG INICIAL E DADOS =====
+// ===== ESTADO COMPLETO DO JOGO =====
 let game = {
   pontos: 0, pontosPorClique: 1, pontosPorSegundo: 0, multiplicador: 1, critChance: 0.05,
-  totalClicado: 0, prestigio: 0, tempoJogado: 0, skinEquipada: 'default', bossesDerrotados: 0,
+  totalClicado: 0, prestigio: 0, tempoJogado: 0, ultimoLogin: Date.now(), skinEquipada: 'default',
+  bossesDerrotados: 0, nomeJogador: 'Player' + Math.floor(Math.random()*9999),
+  amigos: [], conquistasDesbloqueadas: 0,
+
   upgrades: [
     { id: 'cursor', nome: 'Cursor', baseCost: 15, cost: 15, owned: 0, pps: 0.1, desc: '+0.1/s' },
     { id: 'fazenda', nome: 'Fazenda', baseCost: 100, cost: 100, owned: 0, pps: 1, desc: '+1/s' },
@@ -182,18 +231,24 @@ let game = {
     { id: 'portal', nome: 'Portal', baseCost: 130000, cost: 130000, owned: 0, pps: 260, desc: '+260/s' },
     { id: 'nave', nome: 'Nave Espacial', baseCost: 500000, cost: 500000, owned: 0, pps: 1000, desc: '+1000/s' },
     { id: 'buraco', nome: 'Buraco Negro', baseCost: 2000000, cost: 2000000, owned: 0, pps: 5000, desc: '+5000/s' },
-    { id: 'galaxia', nome: 'Galáxia', baseCost: 10000000, cost: 10000000, owned: 0, pps: 20000, desc: '+20k/s' }
+    { id: 'galaxia', nome: 'Galáxia', baseCost: 10000000, cost: 10000000, owned: 0, pps: 20000, desc: '+20k/s' },
+    { id: 'universo', nome: 'Universo', baseCost: 50000000, cost: 50000000, owned: 0, pps: 100000, desc: '+100k/s' },
+    { id: 'multiverso', nome: 'Multiverso', baseCost: 250000000, cost: 250000000, owned: 0, pps: 500000, desc: '+500k/s' }
   ],
+
   upgradesClique: [
     { id: 'dedo', nome: 'Dedo Forte', baseCost: 50, cost: 50, owned: 0, cpp: 1, desc: '+1 por clique' },
     { id: 'luva', nome: 'Luva de Aço', baseCost: 500, cost: 500, owned: 0, cpp: 5, desc: '+5 por clique' },
     { id: 'martelo', nome: 'Martelo', baseCost: 3000, cost: 3000, owned: 0, cpp: 20, desc: '+20 por clique' },
     { id: 'broca', nome: 'Broca', baseCost: 10000, cost: 10000, owned: 0, cpp: 50, desc: '+50 por clique' },
     { id: 'laser', nome: 'Laser', baseCost: 50000, cost: 50000, owned: 0, cpp: 200, desc: '+200 por clique' },
+    { id: 'plasma', nome: 'Canhão de Plasma', baseCost: 250000, cost: 250000, owned: 0, cpp: 1000, desc: '+1000 por clique' },
     { id: 'crit', nome: 'Crítico', baseCost: 2000, cost: 2000, owned: 0, crit: 0.05, desc: '+5% chance crítico x3' },
     { id: 'ultra', nome: 'Ultra Click', baseCost: 25000, cost: 25000, owned: 0, crit: 0.1, desc: '+10% crítico' },
-    { id: 'mega', nome: 'Mega Crítico', baseCost: 100000, cost: 100000, owned: 0, crit: 0.15, desc: '+15% crítico x5' }
+    { id: 'mega', nome: 'Mega Crítico', baseCost: 100000, cost: 100000, owned: 0, crit: 0.15, desc: '+15% crítico x5' },
+    { id: 'god', nome: 'God Click', baseCost: 1000000, cost: 1000000, owned: 0, crit: 0.2, desc: '+20% crítico x10' }
   ],
+
   missions: [
     { id: 1, nome: 'Primeiros 100', req: 100, reward: 50, done: false },
     { id: 2, nome: '1000 cliques', req: 1000, type: 'clicks', reward: 200, done: false },
@@ -201,75 +256,82 @@ let game = {
     { id: 4, nome: 'Imparável', req: 100000, reward: 10000, done: false },
     { id: 5, nome: 'Deus do Clique', req: 1000000, reward: 100000, done: false },
     { id: 6, nome: 'Prestigiado', req: 1, type: 'prest', reward: 50000, done: false },
-    { id: 7, nome: 'Caçador', req: 10, type: 'boss', reward: 200000, done: false }
+    { id: 7, nome: 'Caçador', req: 10, type: 'boss', reward: 200000, done: false },
+    { id: 8, nome: 'Bilionario', req: 100000, reward: 1000000, done: false }
   ],
+
   achievements: [
     { id: 1, nome: 'Iniciante', desc: 'Faça 100 cliques', req: 100, type: 'clicks', done: false, reward: 100 },
-    { id: 2, nome: 'Colecionador', desc: 'Compre 20 upgrades', req: 20, type: 'upgrades', done: false, reward: 500 },
-    { id: 3, nome: 'Ascendido', desc: 'Alcance 1 Prestígio', req: 1, type: 'prest', done: false, reward: 1000 },
-    { id: 4, nome: 'Matador de Boss', desc: 'Derrote 5 bosses', req: 5, type: 'boss', done: false, reward: 2000 },
-    { id: 5, nome: 'Milionário', desc: 'Chegue a 1M de pontos', req: 1000000, type: 'points', done: false, reward: 5000 },
-    { id: 6, nome: 'Veterano', desc: 'Jogue por 1 hora', req: 3600, type: 'time', done: false, reward: 3000 }
+    { id: 2, nome: 'Colecionador', desc: 'Compre 40 upgrades', req: 40, type: 'upgrades', done: false, reward: 1000 },
+    { id: 3, nome: 'Ascendido', desc: 'Alcance 10 Prestígio', req: 10, type: 'prest', done: false, reward: 100000 },
+    { id: 4, nome: 'Matador de Boss', desc: 'Derrote 50 bosses', req: 50, type: 'boss', done: false, reward: 50000 },
+    { id: 5, nome: 'Milionário', desc: 'Chegue a 10M de pontos', req: 10000000, type: 'points', done: false, reward: 200000 },
+    { id: 6, nome: 'Veterano', desc: 'Jogue por 24 horas', req: 86400, type: 'time', done: false, reward: 100000 },
+    { id: 7, nome: 'Social', desc: 'Adicione 5 amigos', req: 5, type: 'friends', done: false, reward: 50000 }
   ],
+
   skins: [
-    { id: 'default', nome: 'Padrão', cost: 0, owned: true, color: 'radial-gradient(circle, #ff4d6d, #c9184a)' },
-    { id: 'gold', nome: 'Dourada', cost: 5000, owned: false, color: 'radial-gradient(circle, #ffd700, #ffb700)' },
-    { id: 'ice', nome: 'Gelo', cost: 20000, owned: false, color: 'radial-gradient(circle, #90e0ef, #00b4d8)' },
-    { id: 'neon', nome: 'Neon', cost: 100000, owned: false, color: 'radial-gradient(circle, #ff00ff, #00ffff)' },
-    { id: 'fire', nome: 'Fogo', cost: 500000, owned: false, color: 'radial-gradient(circle, #ff4500, #ff0000)' },
-    { id: 'galaxy', nome: 'Galáxia', cost: 2000000, owned: false, color: 'radial-gradient(circle, #7209b7, #3a0ca3)' }
+    { id: 'default', nome: 'Padrão', cost: 0, owned: true, color: 'radial-gradient(circle at 30% 30%, #ff7b9c, #c9184a)' },
+    { id: 'gold', nome: 'Dourada', cost: 5000, owned: false, color: 'radial-gradient(circle at 30% 30%, #ffd700, #ffb700)' },
+    { id: 'ice', nome: 'Gelo', cost: 20000, owned: false, color: 'radial-gradient(circle at 30% 30%, #90e0ef, #00b4d8)' },
+    { id: 'neon', nome: 'Neon', cost: 100000, owned: false, color: 'radial-gradient(circle at 30% 30%, #ff00ff, #00ffff)' },
+    { id: 'fire', nome: 'Fogo', cost: 500000, owned: false, color: 'radial-gradient(circle at 30% 30%, #ff4500, #ff0000)' },
+    { id: 'galaxy', nome: 'Galáxia', cost: 2000000, owned: false, color: 'radial-gradient(circle at 30% 30%, #7209b7, #3a0ca3)' },
+    { id: 'matrix', nome: 'Matrix', cost: 10000000, owned: false, color: 'radial-gradient(circle at 30% 30%, #00ff00, #008000)' },
+    { id: 'rainbow', nome: 'Arco-íris', cost: 50000000, owned: false, color: 'conic-gradient(red, orange, yellow, green, blue, indigo, violet, red)' }
   ],
+
   boss: { active: false, hp: 0, maxHp: 0, kills: 0 },
   event: { active: false, type: null, timer: 0 },
-  settings: { vibration: true, sound: true, autoSave: true }
+  settings: { vibration: true, sound: true, autoSave: true, theme: 'dark' }
 };
 
-// ===== FUNÇÕES PRINCIPAIS =====
+// ===== MECÂNICAS PRINCIPAIS =====
 function clickBtn(e) {
   e.preventDefault();
   let ganho = game.pontosPorClique * game.multiplicador * (1 + game.prestigio * 0.1);
   if(game.event.active && game.event.type === '2x') ganho *= 2;
   let isCrit = Math.random() < game.critChance;
-  if(isCrit) ganho *= game.upgradesClique.find(u=>u.id==='mega')?.owned? 5 : 3;
+  let critMult = game.upgradesClique.find(u=>u.id==='god')?.owned? 10 : game.upgradesClique.find(u=>u.id==='mega')?.owned? 5 : 3;
+  if(isCrit) ganho *= critMult;
 
-  game.pontos += ganho;
-  game.totalClicado += 1;
-
+  game.pontos += ganho; game.totalClicado += 1;
   let touch = e.touches? e.touches[0] : e;
-  showFloat(touch.clientX, touch.clientY, `+${Math.floor(ganho)}${isCrit? ' CRIT!' : ''}`);
-
-  if(game.settings.vibration && navigator.vibrate) {
-    navigator.vibrate(isCrit? [50,50,50] : 20);
-  }
+  showFloat(touch.clientX, touch.clientY, `+${formatNum(ganho)}${isCrit? ` ${critMult}x!` : ''}`);
+  if(game.settings.vibration && navigator.vibrate) navigator.vibrate(isCrit? [40,40,40] : 20);
   if(game.settings.sound) playSound(isCrit);
   update();
 }
 
 function showFloat(x, y, text) {
-  let el = document.createElement('div');
-  el.className = 'float';
-  el.style.left = (x - 50) + 'px';
-  el.style.top = (y - 40) + 'px';
-  el.innerText = text;
-  document.getElementById('gameArea').appendChild(el);
-  setTimeout(() => el.remove(), 1200);
+  let el = document.createElement('div'); el.className = 'float';
+  el.style.left = (x - 70) + 'px'; el.style.top = (y - 60) + 'px'; el.innerText = text;
+  document.getElementById('gameArea').appendChild(el); setTimeout(() => el.remove(), 1400);
 }
 
 function playSound(isCrit) {
-  // Sons base64 simplificados pra não pesar
-  let ctx = new (window.AudioContext || window.webkitAudioContext)();
-  let osc = ctx.createOscillator();
-  osc.frequency.value = isCrit? 800 : 400;
-  osc.connect(ctx.destination);
-  osc.start(); osc.stop(ctx.currentTime + 0.1);
+  try {
+    let ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let osc = ctx.createOscillator(); let gain = ctx.createGain();
+    osc.frequency.value = isCrit? 1500 : 600; gain.gain.value = 0.15;
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.07);
+  } catch(e){}
+}
+
+function formatNum(num) {
+  if(num >= 1e12) return (num/1e12).toFixed(2) + 'T';
+  if(num >= 1e9) return (num/1e9).toFixed(2) + 'B';
+  if(num >= 1e6) return (num/1e6).toFixed(2) + 'M';
+  if(num >= 1e3) return (num/1e3).toFixed(2) + 'K';
+  return Math.floor(num).toLocaleString('pt-BR');
 }
 
 function buyUpgrade(type, index) {
   let upg = type === 'pps'? game.upgrades[index] : game.upgradesClique[index];
   if(game.pontos >= upg.cost) {
-    game.pontos -= upg.cost;
-    upg.owned += 1;
-    upg.cost = Math.floor(upg.baseCost * Math.pow(1.15, upg.owned));
+    game.pontos -= upg.cost; upg.owned += 1;
+    upg.cost = Math.floor(upg.baseCost * Math.pow(1.16, upg.owned));
     if(type === 'pps') game.pontosPorSegundo += upg.pps;
     if(type === 'cpp') game.pontosPorClique += upg.cpp;
     if(type === 'crit') game.critChance += upg.crit;
@@ -279,14 +341,8 @@ function buyUpgrade(type, index) {
 
 function buySkin(index) {
   let skin = game.skins[index];
-  if(!skin.owned && game.pontos >= skin.cost) {
-    game.pontos -= skin.cost;
-    skin.owned = true;
-  }
-  if(skin.owned) {
-    game.skinEquipada = skin.id;
-    document.getElementById('botao').style.background = skin.color;
-  }
+  if(!skin.owned && game.pontos >= skin.cost) { game.pontos -= skin.cost; skin.owned = true; }
+  if(skin.owned) { game.skinEquipada = skin.id; document.getElementById('botao').style.background = skin.color; }
   update();
 }
 
@@ -294,63 +350,51 @@ function prestige() {
   if(game.pontos < 100000) return;
   let reward = Math.floor(Math.sqrt(game.pontos / 100000));
   if(confirm(`Resetar e ganhar ${reward}✨ de prestígio? +${(reward*10)}% permanente`)){
-    game.prestigio += reward;
-    game.pontos = 0;
-    game.pontosPorClique = 1;
-    game.pontosPorSegundo = 0;
-    game.critChance = 0.05;
-    game.totalClicado = 0;
+    game.prestigio += reward; game.pontos = 0; game.pontosPorClique = 1; game.pontosPorSegundo = 0;
+    game.critChance = 0.05; game.totalClicado = 0;
     game.upgrades.forEach(u => { u.owned = 0; u.cost = u.baseCost; });
     game.upgradesClique.forEach(u => { u.owned = 0; u.cost = u.baseCost; });
     update();
   }
 }
 
+// ===== BOSS SYSTEM =====
 function spawnBoss() {
   if(game.boss.active) return;
   game.boss.active = true;
-  game.boss.maxHp = 1000 * Math.pow(1.5, game.prestigio);
+  game.boss.maxHp = 5000 * Math.pow(2, game.prestigio);
   game.boss.hp = game.boss.maxHp;
   document.getElementById('boss').style.display = 'block';
   updateBossBar();
-  setTimeout(() => { if(game.boss.active) despawnBoss(); }, 20000);
+  setTimeout(() => { if(game.boss.active) despawnBoss(); }, 30000);
 }
 
 function hitBoss(e) {
-  if(!game.boss.active) return;
-  e.preventDefault();
-  let dmg = game.pontosPorClique * 15;
+  if(!game.boss.active) return; e.preventDefault();
+  let dmg = game.pontosPorClique * 25;
   game.boss.hp -= dmg;
   let touch = e.touches? e.touches[0] : e;
-  showFloat(touch.clientX, touch.clientY, `-${Math.floor(dmg)}`);
-  if(navigator.vibrate) navigator.vibrate(30);
+  showFloat(touch.clientX, touch.clientY, `-${formatNum(dmg)}`);
+  if(navigator.vibrate) navigator.vibrate(50);
   updateBossBar();
   if(game.boss.hp <= 0) {
-    game.boss.kills += 1;
-    game.pontos += game.boss.maxHp * 0.8;
-    alert(`Boss derrotado! +${Math.floor(game.boss.maxHp * 0.8)} pontos`);
+    game.boss.kills += 1; game.pontos += game.boss.maxHp * 1.5;
+    alert(`BOSS LENDÁRIO DERROTADO! +${formatNum(game.boss.maxHp * 1.5)}`);
     despawnBoss();
   }
 }
 
-function despawnBoss() {
-  game.boss.active = false;
-  document.getElementById('boss').style.display = 'none';
-}
+function despawnBoss() { game.boss.active = false; document.getElementById('boss').style.display = 'none'; }
+function updateBossBar() { let pct = Math.max(0, (game.boss.hp / game.boss.maxHp) * 100); document.getElementById('bossHpBar').style.width = pct + '%'; }
 
-function updateBossBar() {
-  let pct = Math.max(0, (game.boss.hp / game.boss.maxHp) * 100);
-  document.getElementById('bossHpBar').style.width = pct + '%';
-}
-
+// ===== EVENTOS ALEATORIOS =====
 function triggerEvent() {
   if(game.event.active) return;
   game.event.active = true;
-  game.event.type = Math.random() < 0.5? '2x' : 'crit';
-  game.event.timer = 30;
-  let el = document.createElement('div');
-  el.className = 'event';
-  el.innerText = game.event.type==='2x'?'EVENTO: 2x PONTOS POR 30s!':'EVENTO: 100% CRÍTICO POR 30s!';
+  game.event.type = ['2x','crit','auto','mega'][Math.floor(Math.random()*4)];
+  game.event.timer = 60;
+  let txt = { '2x':'2X PONTOS', 'crit':'100% CRÍTICO', 'auto':'AUTO CLICK', 'mega':'MEGA LOOT' }[game.event.type];
+  let el = document.createElement('div'); el.className = 'event'; el.innerText = `🔥 EVENTO: ${txt} 60s 🔥`;
   document.getElementById('eventTimer').appendChild(el);
 }
 
@@ -359,18 +403,33 @@ function updateEvent() {
     game.event.timer -= 1;
     document.getElementById('eventTimer').innerText = `Evento: ${game.event.timer}s`;
     if(game.event.timer <= 0) {
-      game.event.active = false;
-      game.event.type = null;
+      game.event.active = false; game.event.type = null;
       document.getElementById('eventTimer').innerHTML = '';
     }
   }
 }
 
+// ===== SISTEMA DE AMIGOS =====
+function addFriend() {
+  let name = document.getElementById('friendName').value.trim();
+  if(name &&!game.amigos.find(f=>f.nome===name)) {
+    game.amigos.push({nome: name, score: Math.floor(Math.random()*5000000)});
+    document.getElementById('friendName').value = '';
+    update();
+  }
+}
+
+function compareFriend(index) {
+  let amigo = game.amigos[index];
+  alert(`${amigo.nome}: ${formatNum(amigo.score)}\nVocê: ${formatNum(game.pontos)}\nDiferença: ${formatNum(Math.abs(amigo.score - game.pontos))}`);
+}
+
+// ===== MISSÕES E CONQUISTAS =====
 function checkMissions() {
   game.missions.forEach(m => {
     if(!m.done) {
       let progress = m.type === 'clicks'? game.totalClicado : m.type==='prest'?game.prestigio:m.type==='boss'?game.boss.kills:game.pontos;
-      if(progress >= m.req) { m.done = true; game.pontos += m.reward; alert(`Missão: ${m.nome}! +${m.reward.toLocaleString('pt-BR')}`); }
+      if(progress >= m.req) { m.done = true; game.pontos += m.reward; alert(`✅ Missão: ${m.nome}! +${formatNum(m.reward)}`); }
     }
   });
 }
@@ -379,166 +438,24 @@ function checkAchievements() {
   let totalUpgrades = [...game.upgrades,...game.upgradesClique].reduce((a,u)=>a+u.owned,0);
   game.achievements.forEach(a => {
     if(!a.done) {
-      let progress = a.type==='clicks'?game.totalClicado:a.type==='upgrades'?totalUpgrades:a.type==='prest'?game.prestigio:a.type==='boss'?game.boss.kills:a.type==='points'?game.pontos:a.type==='time'?game.tempoJogado:0;
-      if(progress >= a.req) { a.done = true; game.pontos += a.reward; alert(`Conquista: ${a.nome}! +${a.reward}`); }
+      let progress = a.type==='clicks'?game.totalClicado:a.type==='upgrades'?totalUpgrades:a.type==='prest'?game.prestigio:a.type==='boss'?game.boss.kills:a.type==='points'?game.pontos:a.type==='time'?game.tempoJogado:a.type==='friends'?game.amigos.length:0;
+      if(progress >= a.req) { a.done = true; game.conquistasDesbloqueadas++; game.pontos += a.reward; alert(`🏆 Conquista: ${a.nome}! +${formatNum(a.reward)}`); }
     }
   });
 }
 
-// ===== RENDER E UI =====
-function update() {
-  let displayScore = Math.floor(game.pontos).toLocaleString('pt-BR');
-  document.getElementById('score').innerText = displayScore;
-  document.getElementById('topScore').innerText = displayScore;
-
-  let ppsTotal = game.pontosPorSegundo * (1 + game.prestigio * 0.1);
-  if(game.event.active && game.event.type === '2x') ppsTotal *= 2;
-  if(game.event.active && game.event.type === 'crit') game.critChance = 1;
-
-  document.getElementById('pps').innerText = `${ppsTotal.toFixed(1)}/s`;
-  document.getElementById('topPPS').innerText = `${ppsTotal.toFixed(1)}/s`;
-  document.getElementById('multiplier').innerText = `x${(1 + game.prestigio * 0.1).toFixed(2)}`;
-  document.getElementById('crit').innerText = `Crit:${(game.critChance*100).toFixed(0)}%`;
-  document.getElementById('prestigeReward').innerText = Math.floor(Math.sqrt(game.pontos / 100000));
-  document.getElementById('prestigeBtn').disabled = game.pontos < 100000;
-
-  renderUpgrades();
-  renderMissions();
-  renderAchievements();
-  renderSkins();
-  renderStats();
-  renderRanking();
-  checkMissions();
-  checkAchievements();
-  if(game.settings.autoSave) saveGame();
-}
-
-function renderUpgrades() {
-  let htmlPPS = '';
-  game.upgrades.forEach((u,i) => {
-    htmlPPS += `<div class="upgrade ${game.pontos < u.cost? 'locked' : ''}" onclick="buyUpgrade('pps', ${i})">
-      <b>${u.nome}</b><span class="owned">${u.owned}</span><br>
-      <span>${u.desc}</span><br>
-      <span class="cost">${u.cost.toLocaleString('pt-BR')}</span></div>`;
-  });
-  let htmlClick = '';
-  game.upgradesClique.forEach((u,i) => {
-    htmlClick += `<div class="upgrade ${game.pontos < u.cost? 'locked' : ''}" onclick="buyUpgrade('cpp', ${i})">
-      <b>${u.nome}</b><span class="owned">${u.owned}</span><br>
-      <span>${u.desc}</span><br>
-      <span class="cost">${u.cost.toLocaleString('pt-BR')}</span></div>`;
-  });
-  document.getElementById('upgradesPPS').innerHTML = htmlPPS;
-  document.getElementById('upgradesClick').innerHTML = htmlClick;
-}
-
-function renderMissions() {
-  let html = '';
-  game.missions.forEach(m => {
-    html += `<div class="mission ${m.done?'done':''}"><b>${m.nome}</b> ${m.done?'✅':''}<br>
-      Recompensa: <span class="cost">${m.reward.toLocaleString('pt-BR')}</span></div>`;
-  });
-  document.getElementById('missionsTab').innerHTML = html;
-}
-
-function renderAchievements() {
-  let html = '';
-  game.achievements.forEach(a => {
-    html += `<div class="achievement ${a.done?'done':''}"><b>${a.nome}</b> ${a.done?'🏆':''}<br>
-      ${a.desc}<br><span class="cost">+${a.reward}</span></div>`;
-  });
-  document.getElementById('achTab').innerHTML = html;
-}
-
-function renderSkins() {
-  let html = '';
-  game.skins.forEach((s,i) => {
-    html += `<div class="skin ${!s.owned && game.pontos < s.cost?'locked':''}" onclick="buySkin(${i})">
-      <b>${s.nome}</b> ${game.skinEquipada===s.id?'✔️':''}<br>
-      <span class="cost">${s.owned?'Equipado':s.cost===0?'Grátis':s.cost.toLocaleString('pt-BR')}</span></div>`;
-  });
-  document.getElementById('skinsTab').innerHTML = html;
-}
-
-function renderStats() {
-  let totalUpgrades = [...game.upgrades,...game.upgradesClique].reduce((a,u)=>a+u.owned,0);
-  document.getElementById('stats').innerHTML = `
-    Clicks: ${game.totalClicado.toLocaleString('pt-BR')}<br>
-    Prestígio: ${game.prestigio}✨<br>
-    Bosses: ${game.boss.kills}<br>
-    Upgrades: ${totalUpgrades}<br>
-    Tempo: ${Math.floor(game.tempoJogado/60)}min
-  `;
-}
-
-function renderRanking() {
-  let ranking = JSON.parse(localStorage.getItem('clickerRanking') || '[]');
-  ranking.sort((a,b)=>b.score-a.score);
-  let html = '';
-  ranking.slice(0,10).forEach((r,i)=>html+=`${i+1}. ${r.score.toLocaleString('pt-BR')}<br>`);
-  document.getElementById('ranking').innerHTML = html || 'Sem recordes ainda';
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  if(tab==='pps'){document.getElementById('upgradesPPS').style.display='block';document.getElementById('upgradesClick').style.display='none';}
-  if(tab==='click'){document.getElementById('upgradesPPS').style.display='none';document.getElementById('upgradesClick').style.display='block';}
-  if(tab==='skins'){document.getElementById('skinsTab').style.display='block';document.getElementById('missionsTab').style.display='none';document.getElementById('achTab').style.display='none';}
-  if(tab==='mis'){document.getElementById('skinsTab').style.display='none';document.getElementById('missionsTab').style.display='block';document.getElementById('achTab').style.display='none';}
-  if(tab==='ach'){document.getElementById('skinsTab').style.display='none';document.getElementById('missionsTab').style.display='none';document.getElementById('achTab').style.display='block';}
-  event.target.classList.add('active');
-}
-
-function toggleMenu(side) {
-  document.getElementById(side==='left'?'menuLeft':'menuRight').classList.toggle('menuOpen');
-  document.getElementById('overlay').classList.toggle('show');
-}
-function closeMenus() {
-  document.querySelectorAll('.sideMenu').forEach(m=>m.classList.remove('menuOpen'));
-  document.getElementById('overlay').classList.remove('show');
-}
-
+// ===== SAVE/LOAD + OFFLINE =====
 function saveGame() {
-  localStorage.setItem('clickerMobile', JSON.stringify(game));
+  localStorage.setItem('clickerInfinity', JSON.stringify(game));
   let ranking = JSON.parse(localStorage.getItem('clickerRanking') || '[]');
-  ranking.push({score: Math.floor(game.pontos), date: Date.now()});
-  ranking = ranking.slice(-20);
+  ranking.push({nome: game.nomeJogador, score: Math.floor(game.pontos), date: Date.now()});
+  ranking = ranking.sort((a,b)=>b.score-a.score).slice(0,20);
   localStorage.setItem('clickerRanking', JSON.stringify(ranking));
 }
 
 function loadGame() {
-  let save = localStorage.getItem('clickerMobile');
-  if(save) game = {...game,...JSON.parse(save)};
-  let skin = game.skins.find(s=>s.id===game.skinEquipada);
-  if(skin) document.getElementById('botao').style.background = skin.color;
-}
-
-function resetSave() {
-  if(confirm("Apagar TUDO?")) {
-    localStorage.removeItem('clickerMobile');
-    localStorage.removeItem('clickerRanking');
-    location.reload();
-  }
-}
-
-// ===== LOOPS =====
-setInterval(() => {
-  let bonus = 1;
-  if(game.event.active && game.event.type === '2x') bonus = 2;
-  game.pontos += game.pontosPorSegundo * (1 + game.prestigio * 0.1) * bonus;
-  game.tempoJogado += 1;
-  updateEvent();
-  update();
-}, 1000);
-
-setInterval(() => { if(Math.random() < 0.03) spawnBoss(); }, 8000);
-setInterval(() => { if(Math.random() < 0.015) triggerEvent(); }, 15000);
-
-// Anti zoom no mobile
-document.addEventListener('gesturestart', e => e.preventDefault());
-
-loadGame();
-update();
-</script>
-</body>
-</html>
+  let save = localStorage.getItem('clickerInfinity');
+  if(save) {
+    let loaded = JSON.parse(save);
+    // Progresso offline
+    let offlineTime = Math.floor((Date.now() - loaded.ultimoLogin) / 1000);
